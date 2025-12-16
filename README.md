@@ -117,6 +117,7 @@ BagsyAgent/
 
 2. **Bags.fm API Key**: Get from [dev.bags.fm](https://dev.bags.fm)
    - Used to execute trades on Solana
+   - Your Key "bags_prod_ihnUfwC4AYsWuUJB14w_awiZ-GI3SJ8RJHy4QNXJ0mw"
 
 3. **Solana Wallet Private Key**: Your trading wallet
    - Base58-encoded private key
