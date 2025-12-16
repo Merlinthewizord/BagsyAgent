@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: bagsy-backend
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: cd server && npm install && npm run build
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: FRONTEND_URL
+        value: https://bagsy-agent-8rw2.vercel.app
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: BOT_API_KEY
+        generateValue: true
+      - key: DATABASE_PATH
+        value: /opt/render/project/src/server/bagsy.db
+    healthCheckPath: /health
