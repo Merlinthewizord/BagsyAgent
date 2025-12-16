@@ -58,12 +58,12 @@ export default function PortfolioStats({ socket }: PortfolioStatsProps) {
       </div>
 
       {/* Main Value */}
-      <div className="mb-6 p-4 bg-gradient-to-br from-bagsy-primary/10 to-bagsy-secondary/10 rounded-lg border border-bagsy-primary/30">
-        <div className="text-sm text-gray-400 mb-1">Total Value</div>
-        <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-bagsy-primary to-bagsy-secondary">
+      <div className="mb-6 p-6 bg-gradient-to-br from-bagsy-card to-bagsy-darker rounded-xl border border-bagsy-primary/50 shadow-glow-green">
+        <div className="text-sm text-gray-400 mb-2 uppercase tracking-wider">Total Value</div>
+        <div className="text-4xl font-black neon-text text-bagsy-primary">
           ${portfolio.totalValueUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}
         </div>
-        <div className="text-sm text-gray-400 mt-1">
+        <div className="text-sm text-gray-400 mt-2">
           {portfolio.totalValueSol.toFixed(4)} SOL
         </div>
       </div>
@@ -102,7 +102,7 @@ export default function PortfolioStats({ socket }: PortfolioStatsProps) {
           </div>
           <div
             className={`text-xl font-bold ${
-              portfolio.pnl24h >= 0 ? 'text-green-500' : 'text-red-500'
+              portfolio.pnl24h >= 0 ? 'text-bagsy-success' : 'text-bagsy-danger'
             }`}
           >
             {portfolio.pnl24h >= 0 ? '+' : ''}
@@ -122,7 +122,7 @@ export default function PortfolioStats({ socket }: PortfolioStatsProps) {
           </div>
           <div
             className={`text-xl font-bold ${
-              portfolio.pnlAllTime >= 0 ? 'text-green-500' : 'text-red-500'
+              portfolio.pnlAllTime >= 0 ? 'text-bagsy-success' : 'text-bagsy-danger'
             }`}
           >
             {portfolio.pnlAllTime >= 0 ? '+' : ''}

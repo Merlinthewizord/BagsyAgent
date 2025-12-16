@@ -9,23 +9,23 @@ interface BagsyHeaderProps {
 
 export default function BagsyHeader({ connected }: BagsyHeaderProps) {
   return (
-    <header className="bg-bagsy-dark border-b border-gray-800 sticky top-0 z-50">
+    <header className="bg-bagsy-darker border-b border-bagsy-border sticky top-0 z-50 backdrop-blur-lg bg-opacity-90">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Left - Bagsy Character */}
           <div className="flex items-center space-x-4">
             {/* Placeholder for Bagsy image - replace with actual image */}
             <div className="relative">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-bagsy-primary to-bagsy-secondary flex items-center justify-center text-3xl animate-pulse-slow">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-bagsy-primary to-bagsy-secondary flex items-center justify-center text-3xl animate-pulse-slow shadow-glow-green">
                 🤖
               </div>
               {connected && (
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-bagsy-dark animate-pulse"></div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-bagsy-primary rounded-full border-2 border-bagsy-darker animate-pulse shadow-glow-green"></div>
               )}
             </div>
 
             <div>
-              <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-bagsy-primary to-bagsy-secondary">
+              <h1 className="text-2xl font-bold neon-text text-bagsy-primary">
                 Bagsy
               </h1>
               <p className="text-sm text-gray-400">Autonomous AI Trader</p>
@@ -34,21 +34,21 @@ export default function BagsyHeader({ connected }: BagsyHeaderProps) {
 
           {/* Center - Tagline */}
           <div className="hidden md:block">
-            <p className="text-lg font-semibold text-gray-300">
-              On a mission to <span className="text-bagsy-accent">$100k</span> 💰
+            <p className="text-lg font-bold text-white">
+              On a mission to <span className="text-bagsy-primary neon-text">$100k</span> 💰
             </p>
-            <p className="text-xs text-gray-500 text-center">
-              $BAGSY to $100M market cap 🚀
+            <p className="text-xs text-gray-400 text-center">
+              $BAGSY to <span className="text-bagsy-secondary">$100M</span> market cap 🚀
             </p>
           </div>
 
           {/* Right - Status */}
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 bg-bagsy-card px-3 py-2 rounded-lg border border-bagsy-border">
               {connected ? (
                 <>
-                  <Activity className="w-5 h-5 text-green-500 animate-pulse" />
-                  <span className="text-sm text-green-500 font-medium">Live</span>
+                  <Activity className="w-5 h-5 text-bagsy-primary animate-pulse" />
+                  <span className="text-sm text-bagsy-primary font-bold">LIVE</span>
                 </>
               ) : (
                 <>
@@ -65,7 +65,7 @@ export default function BagsyHeader({ connected }: BagsyHeaderProps) {
               className="btn-primary text-sm flex items-center space-x-2"
             >
               <Wallet className="w-4 h-4" />
-              <span>View Wallet</span>
+              <span>Wallet</span>
             </a>
           </div>
         </div>

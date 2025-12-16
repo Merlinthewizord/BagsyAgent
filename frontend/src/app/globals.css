@@ -4,49 +4,53 @@
 
 @layer base {
   body {
-    @apply bg-bagsy-darker text-gray-100;
+    @apply bg-bagsy-darker text-white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-bagsy-dark rounded-lg p-6 border border-gray-800 shadow-xl;
+    @apply bg-bagsy-card rounded-xl p-6 border border-bagsy-border shadow-2xl;
+    background: linear-gradient(135deg, #121212 0%, #0a0a0a 100%);
   }
 
   .btn-primary {
-    @apply bg-bagsy-primary hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors;
+    @apply bg-bagsy-primary hover:bg-opacity-80 text-black font-bold py-2 px-4 rounded-lg transition-all shadow-glow-green;
   }
 
   .btn-secondary {
-    @apply bg-bagsy-secondary hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors;
+    @apply bg-bagsy-secondary hover:bg-opacity-80 text-black font-bold py-2 px-4 rounded-lg transition-all shadow-glow-blue;
   }
 
   .thought-bubble {
-    @apply bg-gray-800 rounded-2xl p-4 border border-gray-700 shadow-lg relative;
+    @apply bg-bagsy-card rounded-2xl p-4 border border-bagsy-border shadow-lg relative;
+    backdrop-filter: blur(10px);
   }
 
   .chat-bubble-user {
-    @apply bg-blue-600 text-white rounded-2xl px-4 py-2 max-w-md ml-auto;
+    @apply bg-bagsy-secondary text-black rounded-2xl px-4 py-2 max-w-md ml-auto font-medium;
   }
 
   .chat-bubble-bagsy {
-    @apply bg-gray-700 text-gray-100 rounded-2xl px-4 py-2 max-w-md;
+    @apply bg-bagsy-card text-white rounded-2xl px-4 py-2 max-w-md border border-bagsy-border;
   }
 
   .stat-card {
-    @apply bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-4 border border-gray-700;
+    @apply bg-bagsy-card rounded-lg p-4 border border-bagsy-border;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
   }
 
   .trade-item {
-    @apply bg-gray-800 rounded-lg p-3 border-l-4 transition-all hover:bg-gray-750;
+    @apply bg-bagsy-card rounded-lg p-3 border-l-4 transition-all hover:border-opacity-100;
   }
 
   .trade-buy {
-    @apply border-green-500;
+    @apply border-bagsy-success hover:shadow-glow-green;
   }
 
   .trade-sell {
-    @apply border-red-500;
+    @apply border-bagsy-danger hover:shadow-glow-pink;
   }
 
   .scrollbar-hide {
@@ -66,16 +70,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #1f2937;
+  background: #0a0a0a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: #00ff88;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: #00d4ff;
 }
 
 /* Animations */
@@ -96,13 +100,32 @@
 
 @keyframes glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
   }
   50% {
-    box-shadow: 0 0 30px rgba(16, 185, 129, 0.8);
+    box-shadow: 0 0 40px rgba(0, 255, 136, 0.8);
   }
 }
 
 .animate-glow {
   animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.8;
+    filter: brightness(1.2);
+  }
+}
+
+/* Neon text effect */
+.neon-text {
+  text-shadow:
+    0 0 10px rgba(0, 255, 136, 0.8),
+    0 0 20px rgba(0, 255, 136, 0.6),
+    0 0 30px rgba(0, 255, 136, 0.4);
 }
