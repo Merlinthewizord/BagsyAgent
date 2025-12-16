@@ -62,11 +62,34 @@ export class OdinBotClient {
     try {
       this.logger.debug('Fetching all mirrored wallets from OdinBot');
       const response = await this.client.get('/mirrors');
-      return response.data || [];
+
+      // Handle different response formats
+      let mirrors = response.data;
+
+      // If response has a 'data' or 'mirrors' property, use that
+      if (mirrors && typeof mirrors === 'object') {
+        if (Array.isArray(mirrors.data)) {
+          mirrors = mirrors.data;
+        } else if (Array.isArray(mirrors.mirrors)) {
+          mirrors = mirrors.mirrors;
+        }
+      }
+
+      // Ensure we return an array
+      if (!Array.isArray(mirrors)) {
+        this.logger.warn('OdinBot API returned non-array response', {
+          responseType: typeof mirrors,
+          response: mirrors
+        });
+        return [];
+      }
+
+      return mirrors;
     } catch (error: any) {
       this.logger.error('Error fetching mirrors from OdinBot', {
         error: error.message,
-        status: error.response?.status
+        status: error.response?.status,
+        responseData: error.response?.data
       });
       return [];
     }
@@ -268,6 +291,13 @@ export class OdinBotClient {
     this.logger.info(`Syncing mirrors with ${desiredWallets.length} desired wallets...`);
 
     const currentMirrors = await this.getAllMirrors();
+
+    // Ensure currentMirrors is an array (defensive programming)
+    if (!Array.isArray(currentMirrors)) {
+      this.logger.error('Failed to get current mirrors - invalid response format');
+      return { added: 0, removed: 0, kept: 0 };
+    }
+
     const currentAddresses = new Set(currentMirrors.map(m => m.address));
     const desiredAddresses = new Set(desiredWallets.map(w => w.address));
 
