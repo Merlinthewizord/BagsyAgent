@@ -1,6 +1,6 @@
 import { Logger } from 'winston';
 import { DuneClient } from './DuneClient';
-import { KOL_WALLETS, getKOLName } from '../data/kol-wallets';
+import { KOL_WALLETS, getKOLName, getWalletStats, getQualifiedWallets, KOLWallet } from '../data/kol-wallets';
 
 export interface TokenConsensus {
   tokenAddress: string;
@@ -52,7 +52,19 @@ export class KOLConsensusTracker {
       );
     }
 
-    this.logger.info(`Fetching KOL transactions for ${KOL_WALLETS.length} wallets...`);
+    // Use only qualified wallets (those meeting minimum performance criteria)
+    const walletsToTrack = getQualifiedWallets(60, 20, 10); // minWinRate: 60%, minPnL: 20 SOL, minTrades: 10
+    const stats = getWalletStats();
+
+    this.logger.info('KOL Wallet Stats:', {
+      total: stats.totalWallets,
+      qualified: stats.qualifiedWallets,
+      avgWinRate: stats.avgWinRate + '%',
+      avgPnL: stats.avgPnL + ' SOL',
+      topPerformer: stats.topPerformer?.name || 'N/A'
+    });
+
+    this.logger.info(`Fetching KOL transactions for ${walletsToTrack.length} qualified wallets...`);
 
     // Track token purchases by KOL
     const tokenPurchases = new Map<string, {
@@ -68,8 +80,8 @@ export class KOLConsensusTracker {
     const delayBetweenBatches = 4000; // 4 second delay between batches
     const delayBetweenRequests = 1500; // 1.5 second delay between individual requests
 
-    for (let i = 0; i < KOL_WALLETS.length; i += batchSize) {
-      const batch = KOL_WALLETS.slice(i, i + batchSize);
+    for (let i = 0; i < walletsToTrack.length; i += batchSize) {
+      const batch = walletsToTrack.slice(i, i + batchSize);
 
       // Process batch sequentially (not in parallel) to further reduce rate limit issues
       for (const kol of batch) {
@@ -103,9 +115,10 @@ export class KOLConsensusTracker {
             }
 
             const tokenData = tokenPurchases.get(buy.tokenAddress)!;
-            tokenData.buyers.add(kol.name);
-            tokenData.amounts.set(kol.name, buy.amountSol);
-            tokenData.timestamps.set(kol.name, buy.timestamp);
+            const kolName = kol.name || kol.address.slice(0, 8);
+            tokenData.buyers.add(kolName);
+            tokenData.amounts.set(kolName, buy.amountSol);
+            tokenData.timestamps.set(kolName, buy.timestamp);
           }
 
           // Delay between individual requests
@@ -126,10 +139,10 @@ export class KOLConsensusTracker {
       }
 
       // Log progress
-      this.logger.info(`Processed ${processedWallets}/${KOL_WALLETS.length} KOL wallets...`);
+      this.logger.info(`Processed ${processedWallets}/${walletsToTrack.length} qualified KOL wallets...`);
 
       // Delay between batches to avoid rate limits
-      if (i + batchSize < KOL_WALLETS.length) {
+      if (i + batchSize < walletsToTrack.length) {
         await new Promise(resolve => setTimeout(resolve, delayBetweenBatches));
       }
     }

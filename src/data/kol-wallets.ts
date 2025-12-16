@@ -1,36 +1,95 @@
 /**
- * KOL (Key Opinion Leader) wallet addresses to track for consensus-based trading
- * When 2 or more KOLs buy the same token, it generates a strong buy signal
+ * KOL (Key Opinion Leader) wallet addresses for consensus-based trading
+ *
+ * INSTRUCTIONS: Replace this list with top performers from your Dune Analytics dashboards:
+ * 1. https://dune.com/couldbebasic/top-traders
+ * 2. https://dune.com/couldbebasic/wallet-analyzer-for-copy-traders
+ * 3. https://dune.com/couldbebasic/token-analyzer
+ *
+ * RECOMMENDED CRITERIA FOR SELECTING WALLETS:
+ * - Win Rate: >60% (higher is better)
+ * - Total PnL: >50 SOL profit
+ * - Number of Trades: >20 (shows activity and experience)
+ * - ROI: >200% (at least 2x return)
+ * - Recent Activity: Active within last 7 days
+ * - Avg Trade Size: 1-10 SOL (not too small, not whale-sized)
+ *
+ * Sort wallets by win rate * total profit to find the most reliable performers
  */
 
 export interface KOLWallet {
   address: string;
-  name: string;
-  emoji?: string;
+  name?: string;
+  winRate?: number;      // Win rate percentage (e.g., 75.5 for 75.5%)
+  totalPnL?: number;      // Total profit/loss in SOL
+  numTrades?: number;     // Total number of trades
+  roi?: number;           // Return on investment percentage
+  avgTradeSize?: number;  // Average trade size in SOL
+  lastActive?: string;    // Last activity date
+  tags?: string[];        // Optional tags like ['aggressive', 'conservative', 'memecoins']
 }
 
+/**
+ * PASTE YOUR TOP WALLETS FROM DUNE DASHBOARDS HERE
+ *
+ * Example format:
+ * {
+ *   address: "ABC123...",
+ *   name: "TopTrader1",
+ *   winRate: 75.5,
+ *   totalPnL: 150.5,
+ *   numTrades: 45,
+ *   roi: 320
+ * }
+ */
 export const KOL_WALLETS: KOLWallet[] = [
-  { address: "FtGWiQYZR8h1yVoSApwY2JPVrWXc7BJyvyiS3Xr1yZ7C", name: "void" },
-  { address: "BHkqZzSzmQiNkehGUA3Krufmq5KGxdkNfRNCock6jbv1", name: "Marz" },
-  { address: "86xCnPeV69n6t3DnyGvkKobf9FdN2H9oiVDdaMpo2MMY", name: "dummydev" },
-  { address: "GJRs4FwHtemZ5ZE9x3FNvJ8TMwitKTh21yxdRPqn7npE", name: "FARTCOIN DEV" },
-  { address: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU", name: "ansem" },
-  { address: "2wT8Yq49kHgDzXuPxZSaeLaH1qbmGXtEyPy64bL7aD3c", name: "blknoiz06" },
-  { address: "8BnEgHoWFysVcuFFX7QztDmzuH8r5ZFvyP3sYwn1XTh6", name: "soleater" },
-  { address: "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh", name: "murad" },
-  { address: "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn", name: "degenspartan" },
-  { address: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", name: "lightcrypto" },
-  { address: "5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1", name: "gainzy" },
-  { address: "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R", name: "0xRacerAlt" },
-  { address: "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", name: "kylenuts" },
-  { address: "3jFB4P4jUCBqN5qKqPEPZBxLMqYBPUhX9g9fDvDHxZBh", name: "thecryptolark" },
-  { address: "GthUzyeGqfqHm4X9BXLSvKpUKxBxPWWAZnRLqM3sKzUH", name: "cobie" },
-  { address: "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM", name: "hsaka" },
-  { address: "SoLDkRHH7UqHHp5wvnkPGjmwDDoBgzDqBbNYKfUQpUG", name: "solana_daily" },
-  { address: "CrYpTo6F3cUB2FNjXqKqPBbHvQ4mT3vJgYBzXdvZRPqC", name: "cryptocred" },
-  { address: "BoNkErS8nT2g4KvXrPCdQzUsMfHpQwNbVqYtRxPqDiGH", name: "bonkbot" },
-  { address: "TrOjAn5rT8hYjKmNpQvXqZsLdFcEwPbVtYxRzPqMnOp", name: "trojansol" }
+  // ============================================================================
+  // TODO: Replace this placeholder list with data from your Dune dashboards
+  // ============================================================================
+
+  // PLACEHOLDER - Remove these and add your top performers from Dune Analytics
+  {
+    address: "86xCnPeV69n6t3DnyGvkKobf9FdN2H9oiVDdaMpo2MMY",
+    name: "Example Trader 1",
+    winRate: 70,
+    totalPnL: 100,
+    numTrades: 30,
+    tags: ['placeholder']
+  },
+
+  // Add more wallets below in the same format...
+  // Copy from: https://dune.com/couldbebasic/top-traders
+
 ];
+
+/**
+ * Validation: Filter out wallets that don't meet minimum criteria
+ */
+export function getQualifiedWallets(
+  minWinRate: number = 60,
+  minPnL: number = 20,
+  minTrades: number = 10
+): KOLWallet[] {
+  return KOL_WALLETS.filter(wallet => {
+    const meetsWinRate = !wallet.winRate || wallet.winRate >= minWinRate;
+    const meetsPnL = !wallet.totalPnL || wallet.totalPnL >= minPnL;
+    const meetsTrades = !wallet.numTrades || wallet.numTrades >= minTrades;
+
+    return meetsWinRate && meetsPnL && meetsTrades;
+  });
+}
+
+/**
+ * Get wallet addresses sorted by performance score
+ * Score = winRate * totalPnL * (1 + numTrades/100)
+ */
+export function getWalletsByPerformance(): KOLWallet[] {
+  return [...KOL_WALLETS].sort((a, b) => {
+    const scoreA = (a.winRate || 50) * (a.totalPnL || 1) * (1 + (a.numTrades || 0) / 100);
+    const scoreB = (b.winRate || 50) * (b.totalPnL || 1) * (1 + (b.numTrades || 0) / 100);
+    return scoreB - scoreA;
+  });
+}
 
 /**
  * Get all KOL wallet addresses
@@ -40,10 +99,18 @@ export function getKOLAddresses(): string[] {
 }
 
 /**
- * Get KOL name by address
+ * Get KOL info by address
  */
-export function getKOLName(address: string): string | undefined {
-  return KOL_WALLETS.find(kol => kol.address === address)?.name;
+export function getKOLByAddress(address: string): KOLWallet | undefined {
+  return KOL_WALLETS.find(kol => kol.address === address);
+}
+
+/**
+ * Get KOL name by address (for logging)
+ */
+export function getKOLName(address: string): string {
+  const kol = getKOLByAddress(address);
+  return kol?.name || address.slice(0, 8) + '...';
 }
 
 /**
@@ -51,4 +118,21 @@ export function getKOLName(address: string): string | undefined {
  */
 export function isKOLWallet(address: string): boolean {
   return KOL_WALLETS.some(kol => kol.address === address);
+}
+
+/**
+ * Stats about the current wallet list
+ */
+export function getWalletStats() {
+  const qualified = getQualifiedWallets();
+  const avgWinRate = qualified.reduce((sum, w) => sum + (w.winRate || 0), 0) / qualified.length;
+  const avgPnL = qualified.reduce((sum, w) => sum + (w.totalPnL || 0), 0) / qualified.length;
+
+  return {
+    totalWallets: KOL_WALLETS.length,
+    qualifiedWallets: qualified.length,
+    avgWinRate: avgWinRate.toFixed(1),
+    avgPnL: avgPnL.toFixed(2),
+    topPerformer: getWalletsByPerformance()[0]
+  };
 }
