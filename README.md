@@ -234,24 +234,43 @@ Edit `server/src/bagsy-personality.ts` to change:
 ### Modify Colors
 Edit `frontend/tailwind.config.ts` for custom theme colors
 
-## 🚢 Deployment
+## 🚢 Production Deployment
 
-### Trading Bot
-Deploy to any server:
-- Railway
-- Render
-- DigitalOcean
-- AWS EC2
+**📖 See [DEPLOYMENT.md](DEPLOYMENT.md) for complete production deployment guide!**
 
-### Frontend
-- **Vercel**: `vercel deploy` (recommended)
-- **Netlify**: Connect GitHub repo
-- **Static hosting**: `npm run build` → deploy `/out`
+### Quick Production Setup
 
-### API Server
-- **Railway**: `railway up`
-- **Render**: Connect GitHub repo
-- **Heroku**: `git push heroku main`
+The project is pre-configured for easy deployment:
+
+```bash
+# 1. Check deployment readiness
+./deploy-check.sh
+
+# 2. Deploy backend to Render (see DEPLOYMENT.md for steps)
+#    - Uses render.yaml configuration
+#    - Automatically sets up build and start commands
+#    - Just connect GitHub repo and set ANTHROPIC_API_KEY
+
+# 3. Update frontend environment variables in Vercel
+#    - Set NEXT_PUBLIC_API_URL to your Render backend URL
+#    - Redeploy frontend
+
+# 4. Test production chat
+#    Visit https://bagsy-agent-8rw2.vercel.app
+```
+
+### Current Deployment Status
+
+- ✅ **Frontend**: Deployed to Vercel at https://bagsy-agent-8rw2.vercel.app
+- 🔧 **Backend**: Ready to deploy (see DEPLOYMENT.md)
+- ⏳ **Production Chat**: Awaiting backend deployment
+
+### Deployment Files
+
+- **`render.yaml`**: Backend deployment configuration for Render
+- **`deploy-check.sh`**: Automated deployment status checker
+- **`DEPLOYMENT.md`**: Complete step-by-step deployment guide
+- **`frontend/.env.production.example`**: Production environment template
 
 ## 🐛 Troubleshooting
 
