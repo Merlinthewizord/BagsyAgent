@@ -11,6 +11,7 @@ import { OdinBotClient } from './services/OdinBotClient';
 import { CopyTradingManager } from './services/CopyTradingManager';
 import { Mem0Client } from './services/Mem0Client';
 import { WalletMemoryTracker } from './services/WalletMemoryTracker';
+import { WalletTestingSystem } from './services/WalletTestingSystem';
 
 async function main() {
   const config = loadConfig();
@@ -97,6 +98,19 @@ async function main() {
   } else {
     logger.info('Mem0 AI memory layer disabled');
   }
+
+  // Initialize wallet testing system
+  const walletTestingSystem = new WalletTestingSystem(
+    walletMemoryTracker,
+    odinBotClient,
+    logger
+  );
+
+  // Load previously approved wallets from memory
+  await walletTestingSystem.loadFromMemory();
+
+  const testingStats = walletTestingSystem.getStats();
+  logger.info('Wallet testing system initialized', testingStats);
 
   // Initialize Bagsy token manager (if token mint is configured)
   let bagsyTokenManager: BagsyTokenManager | null = null;
@@ -245,7 +259,7 @@ async function main() {
       // 6. Check and sync OdinBot copy trading mirrors
       await copyTradingManager.checkAndSync();
 
-      // 7. Learn and store winning wallets to memory
+      // 7. Learn and store winning wallets to memory + testing system
       if (mem0Client.isEnabled() && consensusSignals.length > 0) {
         // Store top consensus tokens with multiple KOL buyers
         const topConsensus = consensusSignals
@@ -260,14 +274,18 @@ async function main() {
           );
         }
 
-        // Store memory stats every 10th iteration
+        // Report stats every 10th iteration
         if (iteration % 10 === 0) {
           const memStats = await walletMemoryTracker.getMemoryStats();
+          const testingStats = walletTestingSystem.getStats();
+
           logger.info('Memory stats:', memStats);
+          logger.info('Testing stats:', testingStats);
 
           apiReporter.reportThought({
             type: 'reflection',
-            content: `🧠 Memory: ${memStats.totalMemories} memories stored. ${memStats.winningWallets} winning wallets tracked. Learning from ${memStats.consensusPatterns} consensus patterns.`,
+            content: `🧠 Memory: ${memStats.totalMemories} memories | ${memStats.winningWallets} winners | ${memStats.consensusPatterns} patterns | ` +
+                     `🧪 Testing: ${testingStats.testing} testing, ${testingStats.approved} approved, ${testingStats.rejected} rejected`,
             sentiment: 'neutral'
           });
         }
