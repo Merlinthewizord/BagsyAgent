@@ -6,6 +6,7 @@ import { SignalAnalyzer } from './services/SignalAnalyzer';
 import { TradingEngine } from './services/TradingEngine';
 import { ApiReporter } from './services/ApiReporter';
 import { BagsyTokenManager } from './services/BagsyTokenManager';
+import { KOLConsensusTracker } from './services/KOLConsensusTracker';
 
 async function main() {
   const config = loadConfig();
@@ -41,6 +42,14 @@ async function main() {
     process.env.BOT_API_KEY || '',
     logger
   );
+  const kolConsensusTracker = new KOLConsensusTracker(
+    duneClient,
+    logger,
+    2, // Minimum 2 KOLs must buy for consensus
+    300000 // Cache for 5 minutes
+  );
+
+  logger.info('KOL Consensus Tracker initialized with 2-KOL minimum threshold');
 
   // Initialize Bagsy token manager (if token mint is configured)
   let bagsyTokenManager: BagsyTokenManager | null = null;
@@ -82,9 +91,10 @@ async function main() {
       iteration++;
       logger.info(`=== Trading iteration ${iteration} ===`);
 
-      // 1. Fetch KOL buys and trending tokens
-      logger.info('Fetching market data...');
-      const [kolBuys, trendingTokens, pumpFunTokens] = await Promise.all([
+      // 1. Fetch KOL consensus signals and market data
+      logger.info('Fetching market data and KOL consensus...');
+      const [consensusSignals, kolBuys, trendingTokens, pumpFunTokens] = await Promise.all([
+        kolConsensusTracker.getConsensusSignals(),
         duneClient.getRecentKOLBuys(50),
         duneClient.getTrendingTokensByVolume('24h', 50),
         duneClient.getPumpFunGraduatesByMarketCap(20)
@@ -94,16 +104,18 @@ async function main() {
       const allTrendingTokens = [...trendingTokens, ...pumpFunTokens];
 
       logger.info('Market data fetched', {
+        consensusTokens: consensusSignals.length,
         kolBuys: kolBuys.length,
         trendingTokens: allTrendingTokens.length
       });
 
-      // 2. Analyze signals
+      // 2. Analyze signals (including consensus)
       const signals = signalAnalyzer.analyzeSignals(
         kolBuys,
         allTrendingTokens,
         config.kolBuyMinAmountSol,
-        config.trendingTokenMinVolume24h
+        config.trendingTokenMinVolume24h,
+        consensusSignals
       );
 
       // Log top signals
@@ -119,11 +131,17 @@ async function main() {
 
           // Report analysis thought for top signal
           if (index === 0) {
+            let content = `🔍 Analyzing ${signal.tokenSymbol}: Score ${signal.score}. ${signal.signals.join(', ')}`;
+
+            if (signal.consensusBuyCount && signal.consensusBuyCount >= 2) {
+              content = `🔥 CONSENSUS SIGNAL: ${signal.tokenSymbol} bought by ${signal.consensusBuyCount} KOLs! ${signal.signals[0]}`;
+            }
+
             apiReporter.reportThought({
               type: 'analysis',
-              content: `🔍 Analyzing ${signal.tokenSymbol}: Score ${signal.score}/15. ${signal.signals.join(', ')}`,
+              content,
               relatedToken: signal.tokenAddress,
-              sentiment: signal.score >= 10 ? 'bullish' : signal.score >= 7 ? 'neutral' : 'cautious'
+              sentiment: signal.consensusBuyCount && signal.consensusBuyCount >= 3 ? 'excited' : signal.score >= 10 ? 'bullish' : signal.score >= 7 ? 'neutral' : 'cautious'
             });
           }
         });

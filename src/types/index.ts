@@ -43,6 +43,8 @@ export interface TokenSignal {
   signals: string[];
   kolBuys: KOLBuy[];
   trendingData: TrendingToken[];
+  consensusBuyCount?: number; // Number of KOLs who bought this token
+  consensusKOLs?: string[]; // Names of KOLs who bought
   timestamp: number;
 }
 

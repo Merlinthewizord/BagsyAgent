@@ -1,5 +1,6 @@
 import { KOLBuy, TrendingToken, TokenSignal } from '../types';
 import { Logger } from 'winston';
+import { TokenConsensus } from './KOLConsensusTracker';
 
 export class SignalAnalyzer {
   private logger: Logger;
@@ -13,14 +14,25 @@ export class SignalAnalyzer {
     kolBuys: KOLBuy[],
     trendingTokens: TrendingToken[],
     minKolBuyAmount: number,
-    minVolume24h: number
+    minVolume24h: number,
+    consensusSignals: TokenConsensus[] = []
   ): TokenSignal[] {
     this.logger.info('Analyzing trading signals');
 
     const tokenMap = new Map<string, {
       kolBuys: KOLBuy[];
       trendingData: TrendingToken[];
+      consensus?: TokenConsensus;
     }>();
+
+    // Aggregate consensus signals by token (highest priority)
+    for (const consensus of consensusSignals) {
+      if (!tokenMap.has(consensus.tokenAddress)) {
+        tokenMap.set(consensus.tokenAddress, { kolBuys: [], trendingData: [], consensus });
+      } else {
+        tokenMap.get(consensus.tokenAddress)!.consensus = consensus;
+      }
+    }
 
     // Aggregate KOL buys by token
     for (const kolBuy of kolBuys) {
@@ -46,7 +58,12 @@ export class SignalAnalyzer {
     const signals: TokenSignal[] = [];
 
     for (const [tokenAddress, data] of tokenMap.entries()) {
-      const signal = this.calculateTokenSignal(tokenAddress, data.kolBuys, data.trendingData);
+      const signal = this.calculateTokenSignal(
+        tokenAddress,
+        data.kolBuys,
+        data.trendingData,
+        data.consensus
+      );
       if (signal.score > 0) {
         signals.push(signal);
         this.tokenSignals.set(tokenAddress, signal);
@@ -64,10 +81,31 @@ export class SignalAnalyzer {
   private calculateTokenSignal(
     tokenAddress: string,
     kolBuys: KOLBuy[],
-    trendingData: TrendingToken[]
+    trendingData: TrendingToken[],
+    consensus?: TokenConsensus
   ): TokenSignal {
     let score = 0;
     const signals: string[] = [];
+
+    // KOL Consensus signals (up to 10 points) - HIGHEST PRIORITY
+    if (consensus && consensus.buyCount >= 2) {
+      if (consensus.buyCount >= 5) {
+        score += 10;
+        signals.push(`🔥 ${consensus.buyCount} KOLs bought (${consensus.kolBuyers.slice(0, 3).join(', ')}${consensus.buyCount > 3 ? '...' : ''})`);
+      } else if (consensus.buyCount >= 3) {
+        score += 7;
+        signals.push(`⚡ ${consensus.buyCount} KOLs bought (${consensus.kolBuyers.join(', ')})`);
+      } else {
+        score += 5;
+        signals.push(`✨ ${consensus.buyCount} KOLs bought (${consensus.kolBuyers.join(', ')})`);
+      }
+
+      // Bonus for large total amount
+      if (consensus.totalAmountSol > 10) {
+        score += 2;
+        signals.push(`Large consensus buy: ${consensus.totalAmountSol.toFixed(1)} SOL total`);
+      }
+    }
 
     // KOL buy signals (up to 5 points)
     if (kolBuys.length > 0) {
@@ -142,7 +180,7 @@ export class SignalAnalyzer {
       }
     }
 
-    const tokenSymbol = kolBuys[0]?.tokenSymbol || trendingData[0]?.tokenSymbol || 'UNKNOWN';
+    const tokenSymbol = consensus?.tokenSymbol || kolBuys[0]?.tokenSymbol || trendingData[0]?.tokenSymbol || 'UNKNOWN';
 
     return {
       tokenAddress,
@@ -151,6 +189,8 @@ export class SignalAnalyzer {
       signals,
       kolBuys,
       trendingData,
+      consensusBuyCount: consensus?.buyCount,
+      consensusKOLs: consensus?.kolBuyers,
       timestamp: Date.now()
     };
   }
