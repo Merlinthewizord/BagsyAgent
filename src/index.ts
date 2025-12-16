@@ -152,68 +152,26 @@ async function main() {
       iteration++;
       logger.info(`=== Trading iteration ${iteration} ===`);
 
-      // 1. Fetch KOL consensus signals and market data
-      logger.info('Fetching market data and KOL consensus...');
-      const [consensusSignals, kolBuys, trendingTokens, pumpFunTokens] = await Promise.all([
-        kolConsensusTracker.getConsensusSignals(),
-        duneClient.getRecentKOLBuys(50),
-        duneClient.getTrendingTokensByVolume('24h', 50),
-        duneClient.getPumpFunGraduatesByMarketCap(20)
-      ]);
+      // 1. Check wallet testing system and update approved wallets
+      logger.info('Checking wallet testing status...');
 
-      // Combine all trending sources
-      const allTrendingTokens = [...trendingTokens, ...pumpFunTokens];
-
-      logger.info('Market data fetched', {
-        consensusTokens: consensusSignals.length,
-        kolBuys: kolBuys.length,
-        trendingTokens: allTrendingTokens.length
+      // Get stats
+      const testingStats = walletTestingSystem.getStats();
+      logger.info('Testing stats:', {
+        total: testingStats.totalWallets,
+        testing: testingStats.testing,
+        approved: testingStats.approved,
+        rejected: testingStats.rejected
       });
 
-      // 2. Analyze signals (including consensus)
-      const signals = signalAnalyzer.analyzeSignals(
-        kolBuys,
-        allTrendingTokens,
-        config.kolBuyMinAmountSol,
-        config.trendingTokenMinVolume24h,
-        consensusSignals
-      );
+      // TODO: Here you would fetch new wallets from Dune and add them to testing
+      // Example:
+      // const newWallets = await duneClient.getTopPerformingWallets();
+      // for (const wallet of newWallets) {
+      //   await walletTestingSystem.addWalletToTesting(wallet);
+      // }
 
-      // Log top signals
-      const topSignals = signals.slice(0, 5);
-      if (topSignals.length > 0) {
-        logger.info('Top trading signals:');
-        topSignals.forEach((signal, index) => {
-          logger.info(`  ${index + 1}. ${signal.tokenSymbol} (Score: ${signal.score})`, {
-            signals: signal.signals,
-            kolBuyCount: signal.kolBuys.length,
-            trendingSources: signal.trendingData.length
-          });
-
-          // Report analysis thought for top signal
-          if (index === 0) {
-            let content = `🔍 Analyzing ${signal.tokenSymbol}: Score ${signal.score}. ${signal.signals.join(', ')}`;
-
-            if (signal.consensusBuyCount && signal.consensusBuyCount >= 2) {
-              content = `🔥 CONSENSUS SIGNAL: ${signal.tokenSymbol} bought by ${signal.consensusBuyCount} KOLs! ${signal.signals[0]}`;
-            }
-
-            apiReporter.reportThought({
-              type: 'analysis',
-              content,
-              relatedToken: signal.tokenAddress,
-              sentiment: signal.consensusBuyCount && signal.consensusBuyCount >= 3 ? 'excited' : signal.score >= 10 ? 'bullish' : signal.score >= 7 ? 'neutral' : 'cautious'
-            });
-          }
-        });
-      } else {
-        logger.info('No trading signals found');
-      }
-
-      // 3. Execute trades based on signals
-      await tradingEngine.processSignals(signals);
-
-      // 4. Display portfolio status
+      // 2. Display portfolio status
       const positions = tradingEngine.getPositions();
       const portfolioValue = tradingEngine.getPortfolioValue();
       const currentBalance = await bagsClient.getWalletBalance();
@@ -256,43 +214,21 @@ async function main() {
         await bagsyTokenManager.checkAndClaimFees();
       }
 
-      // 6. Check and sync OdinBot copy trading mirrors
-      await copyTradingManager.checkAndSync();
+      // 6. Report testing stats every 10th iteration
+      if (mem0Client.isEnabled() && iteration % 10 === 0) {
+        const memStats = await walletMemoryTracker.getMemoryStats();
+        const testingStats = walletTestingSystem.getStats();
 
-      // 7. Learn and store winning wallets to memory + testing system
-      if (mem0Client.isEnabled() && consensusSignals.length > 0) {
-        // Store top consensus tokens with multiple KOL buyers
-        const topConsensus = consensusSignals
-          .filter(c => c.buyCount >= 3) // At least 3 KOLs bought
-          .slice(0, 5); // Top 5
+        logger.info('Memory stats:', memStats);
+        logger.info('Testing stats:', testingStats);
 
-        for (const consensus of topConsensus) {
-          await walletMemoryTracker.learnFromConsensus(
-            consensus.tokenSymbol,
-            consensus.kolBuyers,
-            'pending' // Will update with outcome later
-          );
-        }
-
-        // Report stats every 10th iteration
-        if (iteration % 10 === 0) {
-          const memStats = await walletMemoryTracker.getMemoryStats();
-          const testingStats = walletTestingSystem.getStats();
-
-          logger.info('Memory stats:', memStats);
-          logger.info('Testing stats:', testingStats);
-
-          apiReporter.reportThought({
-            type: 'reflection',
-            content: `🧠 Memory: ${memStats.totalMemories} memories | ${memStats.winningWallets} winners | ${memStats.consensusPatterns} patterns | ` +
-                     `🧪 Testing: ${testingStats.testing} testing, ${testingStats.approved} approved, ${testingStats.rejected} rejected`,
-            sentiment: 'neutral'
-          });
-        }
+        apiReporter.reportThought({
+          type: 'reflection',
+          content: `🧪 Testing: ${testingStats.testing} testing, ${testingStats.approved} approved (mirrored), ${testingStats.rejected} rejected | ` +
+                   `🧠 Memory: ${memStats.totalMemories} memories, ${memStats.winningWallets} winners`,
+          sentiment: 'neutral'
+        });
       }
-
-      // 8. Cleanup old signals
-      signalAnalyzer.clearOldSignals(3600000); // 1 hour
 
       logger.info(`Iteration ${iteration} complete. Next check in ${config.checkIntervalSeconds}s`);
     } catch (error: any) {
