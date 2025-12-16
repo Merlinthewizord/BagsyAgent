@@ -14,10 +14,17 @@ export default function BagsyHeader({ connected }: BagsyHeaderProps) {
         <div className="flex items-center justify-between">
           {/* Left - Bagsy Character */}
           <div className="flex items-center space-x-4">
-            {/* Placeholder for Bagsy image - replace with actual image */}
+            {/* Bagsy Character */}
             <div className="relative">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-bagsy-primary to-bagsy-secondary flex items-center justify-center text-3xl animate-pulse-slow shadow-glow-green">
-                🤖
+              <div className="w-16 h-16 flex items-center justify-center animate-pulse-slow">
+                <Image
+                  src="/bagsy-logo.png"
+                  alt="Bagsy"
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 object-contain drop-shadow-[0_0_15px_rgba(0,255,136,0.5)]"
+                  priority
+                />
               </div>
               {connected && (
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-bagsy-primary rounded-full border-2 border-bagsy-darker animate-pulse shadow-glow-green"></div>
