@@ -212,9 +212,9 @@ app.get('/api/portfolio/history', (req, res) => {
 
 // Update portfolio (called by trading bot)
 app.post('/api/bot/portfolio', (req, res) => {
-  const { apiKey } = req.headers;
+  const apikey = req.headers.apikey as string;
 
-  if (apiKey !== process.env.BOT_API_KEY) {
+  if (apikey !== process.env.BOT_API_KEY) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -224,9 +224,9 @@ app.post('/api/bot/portfolio', (req, res) => {
 
 // Add thought (called by trading bot)
 app.post('/api/bot/thought', (req, res) => {
-  const { apiKey } = req.headers;
+  const apikey = req.headers.apikey as string;
 
-  if (apiKey !== process.env.BOT_API_KEY) {
+  if (apikey !== process.env.BOT_API_KEY) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -242,9 +242,9 @@ app.post('/api/bot/thought', (req, res) => {
 
 // Add trade (called by trading bot)
 app.post('/api/bot/trade', (req, res) => {
-  const { apiKey } = req.headers;
+  const apikey = req.headers.apikey as string;
 
-  if (apiKey !== process.env.BOT_API_KEY) {
+  if (apikey !== process.env.BOT_API_KEY) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -280,9 +280,9 @@ app.post('/api/bot/trade', (req, res) => {
 
 // Update positions (called by trading bot)
 app.post('/api/bot/positions', (req, res) => {
-  const { apiKey } = req.headers;
+  const apikey = req.headers.apikey as string;
 
-  if (apiKey !== process.env.BOT_API_KEY) {
+  if (apikey !== process.env.BOT_API_KEY) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
