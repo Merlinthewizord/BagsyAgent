@@ -5,6 +5,7 @@ import { BagsClient } from './services/BagsClient';
 import { SignalAnalyzer } from './services/SignalAnalyzer';
 import { TradingEngine } from './services/TradingEngine';
 import { ApiReporter } from './services/ApiReporter';
+import { BagsyTokenManager } from './services/BagsyTokenManager';
 
 async function main() {
   const config = loadConfig();
@@ -40,6 +41,30 @@ async function main() {
     process.env.BOT_API_KEY || '',
     logger
   );
+
+  // Initialize Bagsy token manager (if token mint is configured)
+  let bagsyTokenManager: BagsyTokenManager | null = null;
+  if (process.env.BAGSY_TOKEN_MINT) {
+    bagsyTokenManager = new BagsyTokenManager(
+      bagsClient,
+      apiReporter,
+      process.env.BAGSY_TOKEN_MINT,
+      config.slippageBps,
+      logger
+    );
+
+    const claimIntervalHours = parseFloat(process.env.FEE_CLAIM_INTERVAL_HOURS || '1');
+    const minClaimAmount = parseFloat(process.env.MIN_CLAIM_AMOUNT_SOL || '0.01');
+
+    bagsyTokenManager.setClaimInterval(claimIntervalHours * 3600000);
+    bagsyTokenManager.setMinClaimAmount(minClaimAmount);
+
+    logger.info('Bagsy token manager initialized', {
+      tokenMint: process.env.BAGSY_TOKEN_MINT,
+      claimInterval: `${claimIntervalHours}h`,
+      minClaimAmount: `${minClaimAmount} SOL`
+    });
+  }
 
   // Display initial wallet balance
   const initialBalance = await bagsClient.getWalletBalance();
@@ -147,7 +172,12 @@ async function main() {
 
       apiReporter.reportPositions(positions);
 
-      // 5. Cleanup old signals
+      // 5. Check and claim $BAGSY fees (if configured)
+      if (bagsyTokenManager) {
+        await bagsyTokenManager.checkAndClaimFees();
+      }
+
+      // 6. Cleanup old signals
       signalAnalyzer.clearOldSignals(3600000); // 1 hour
 
       logger.info(`Iteration ${iteration} complete. Next check in ${config.checkIntervalSeconds}s`);
