@@ -7,6 +7,8 @@ import { TradingEngine } from './services/TradingEngine';
 import { ApiReporter } from './services/ApiReporter';
 import { BagsyTokenManager } from './services/BagsyTokenManager';
 import { KOLConsensusTracker } from './services/KOLConsensusTracker';
+import { OdinBotClient } from './services/OdinBotClient';
+import { CopyTradingManager } from './services/CopyTradingManager';
 
 async function main() {
   const config = loadConfig();
@@ -50,6 +52,30 @@ async function main() {
   );
 
   logger.info('KOL Consensus Tracker initialized (2-KOL threshold, 15min cache)');
+
+  // Initialize OdinBot copy trading
+  const odinBotClient = new OdinBotClient(
+    process.env.ODINBOT_API_KEY || '',
+    logger,
+    process.env.ODINBOT_ENABLED === 'true'
+  );
+
+  const copyTradingManager = new CopyTradingManager(
+    odinBotClient,
+    apiReporter,
+    logger,
+    parseFloat(process.env.ODINBOT_SYNC_INTERVAL_HOURS || '24'),
+    parseFloat(process.env.ODINBOT_DEFAULT_BUY_AMOUNT || '0.5'),
+    parseFloat(process.env.ODINBOT_DEFAULT_SELL_PERCENTAGE || '100')
+  );
+
+  if (odinBotClient.isEnabled()) {
+    logger.info('OdinBot copy trading enabled');
+    // Perform initial sync
+    await copyTradingManager.forceSyncNow();
+  } else {
+    logger.info('OdinBot copy trading disabled');
+  }
 
   // Initialize Bagsy token manager (if token mint is configured)
   let bagsyTokenManager: BagsyTokenManager | null = null;
@@ -195,7 +221,10 @@ async function main() {
         await bagsyTokenManager.checkAndClaimFees();
       }
 
-      // 6. Cleanup old signals
+      // 6. Check and sync OdinBot copy trading mirrors
+      await copyTradingManager.checkAndSync();
+
+      // 7. Cleanup old signals
       signalAnalyzer.clearOldSignals(3600000); // 1 hour
 
       logger.info(`Iteration ${iteration} complete. Next check in ${config.checkIntervalSeconds}s`);
