@@ -46,10 +46,10 @@ async function main() {
     duneClient,
     logger,
     2, // Minimum 2 KOLs must buy for consensus
-    300000 // Cache for 5 minutes
+    900000 // Cache for 15 minutes (to reduce API rate limit issues)
   );
 
-  logger.info('KOL Consensus Tracker initialized with 2-KOL minimum threshold');
+  logger.info('KOL Consensus Tracker initialized (2-KOL threshold, 15min cache)');
 
   // Initialize Bagsy token manager (if token mint is configured)
   let bagsyTokenManager: BagsyTokenManager | null = null;

@@ -27,7 +27,7 @@ export class KOLConsensusTracker {
     duneClient: DuneClient,
     logger: Logger,
     consensusThreshold: number = 2,
-    cacheValidityMs: number = 300000 // 5 minutes
+    cacheValidityMs: number = 900000 // 15 minutes (increased to reduce API calls)
   ) {
     this.logger = logger;
     this.duneClient = duneClient;
@@ -62,14 +62,17 @@ export class KOLConsensusTracker {
       timestamps: Map<string, number>;
     }>();
 
-    // Fetch transactions for each KOL wallet (with rate limiting)
+    // Fetch transactions for each KOL wallet (with aggressive rate limiting)
     let processedWallets = 0;
-    const batchSize = 10; // Process 10 wallets at a time to avoid rate limits
+    const batchSize = 3; // Process only 3 wallets at a time to avoid rate limits
+    const delayBetweenBatches = 4000; // 4 second delay between batches
+    const delayBetweenRequests = 1500; // 1.5 second delay between individual requests
 
     for (let i = 0; i < KOL_WALLETS.length; i += batchSize) {
       const batch = KOL_WALLETS.slice(i, i + batchSize);
 
-      const batchPromises = batch.map(async (kol) => {
+      // Process batch sequentially (not in parallel) to further reduce rate limit issues
+      for (const kol of batch) {
         try {
           // Create a temporary DuneClient instance for each wallet
           const walletDuneClient = new DuneClient(
@@ -104,21 +107,30 @@ export class KOLConsensusTracker {
             tokenData.amounts.set(kol.name, buy.amountSol);
             tokenData.timestamps.set(kol.name, buy.timestamp);
           }
-        } catch (error: any) {
-          this.logger.error(`Error fetching trades for ${kol.name}`, {
-            error: error.message
-          });
-        }
-      });
 
-      await Promise.all(batchPromises);
+          // Delay between individual requests
+          await new Promise(resolve => setTimeout(resolve, delayBetweenRequests));
+
+        } catch (error: any) {
+          // Check if it's a rate limit error (429)
+          if (error.message && error.message.includes('429')) {
+            this.logger.warn(`Rate limit hit for ${kol.name}, waiting longer...`);
+            // Wait 10 seconds before continuing if we hit rate limit
+            await new Promise(resolve => setTimeout(resolve, 10000));
+          } else {
+            this.logger.error(`Error fetching trades for ${kol.name}`, {
+              error: error.message
+            });
+          }
+        }
+      }
 
       // Log progress
       this.logger.info(`Processed ${processedWallets}/${KOL_WALLETS.length} KOL wallets...`);
 
-      // Small delay between batches to avoid rate limits
+      // Delay between batches to avoid rate limits
       if (i + batchSize < KOL_WALLETS.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, delayBetweenBatches));
       }
     }
 
