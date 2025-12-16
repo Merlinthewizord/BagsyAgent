@@ -5,39 +5,42 @@ import { Logger } from 'winston';
 export class DuneClient {
   private client: AxiosInstance;
   private logger: Logger;
+  private walletAddress: string;
 
-  constructor(apiKey: string, logger: Logger) {
+  constructor(apiKey: string, logger: Logger, walletAddress: string = '86xCnPeV69n6t3DnyGvkKobf9FdN2H9oiVDdaMpo2MMY') {
     this.logger = logger;
+    this.walletAddress = walletAddress;
     this.client = axios.create({
-      baseURL: 'https://api.dune.com/api/v1',
+      baseURL: 'https://api.sim.dune.com/beta/svm',
       headers: {
-        'X-Dune-API-Key': apiKey
+        'X-Sim-Api-Key': apiKey
       }
     });
   }
 
   async getRecentKOLBuys(limit: number = 20): Promise<KOLBuy[]> {
     try {
-      this.logger.info('Fetching recent KOL buys from Dune');
+      this.logger.info('Fetching recent transactions from Dune Sim API');
 
-      // Query ID for KOL buys - this would need to be created in Dune Analytics
-      // For now, we'll use a placeholder structure
-      const queryId = 'your_kol_buys_query_id';
-
-      const response = await this.client.get(`/query/${queryId}/results`, {
+      const response = await this.client.get(`/transactions/${this.walletAddress}`, {
         params: { limit }
       });
 
-      const kolBuys: KOLBuy[] = response.data.result?.rows?.map((row: any) => ({
-        tokenAddress: row.token_address,
-        tokenSymbol: row.token_symbol,
-        kolWallet: row.kol_wallet,
-        amountSol: parseFloat(row.amount_sol),
-        timestamp: new Date(row.timestamp).getTime(),
-        txSignature: row.tx_signature
+      // Parse transactions to identify potential KOL buys
+      // Looking for large SOL transfers that might indicate token purchases
+      const kolBuys: KOLBuy[] = response.data?.transactions?.filter((tx: any) => {
+        // Filter for transactions with significant SOL amounts
+        return tx.amount && parseFloat(tx.amount) >= 0.1;
+      }).map((tx: any) => ({
+        tokenAddress: tx.token_address || tx.to_address || '',
+        tokenSymbol: tx.token_symbol || 'UNKNOWN',
+        kolWallet: tx.from_address || this.walletAddress,
+        amountSol: parseFloat(tx.amount || '0'),
+        timestamp: new Date(tx.timestamp || Date.now()).getTime(),
+        txSignature: tx.signature || tx.tx_hash || ''
       })) || [];
 
-      this.logger.info(`Fetched ${kolBuys.length} KOL buys`);
+      this.logger.info(`Fetched ${kolBuys.length} recent transactions`);
       return kolBuys;
     } catch (error: any) {
       this.logger.error('Error fetching KOL buys', { error: error.message });
@@ -47,26 +50,21 @@ export class DuneClient {
 
   async getTrendingTokensByVolume(timeframe: string = '24h', limit: number = 20): Promise<TrendingToken[]> {
     try {
-      this.logger.info(`Fetching trending tokens by volume (${timeframe})`);
+      this.logger.info(`Fetching token balances from Dune Sim API`);
 
-      // Query ID for trending tokens - placeholder
-      const queryId = 'your_trending_tokens_query_id';
+      const response = await this.client.get(`/balances/${this.walletAddress}`);
 
-      const response = await this.client.get(`/query/${queryId}/results`, {
-        params: { limit, timeframe }
-      });
-
-      const trendingTokens: TrendingToken[] = response.data.result?.rows?.map((row: any) => ({
-        tokenAddress: row.token_address,
-        tokenSymbol: row.token_symbol,
-        marketCap: parseFloat(row.market_cap),
-        volume24h: parseFloat(row.volume_24h),
-        priceChange24h: parseFloat(row.price_change_24h),
-        source: 'dune',
+      const trendingTokens: TrendingToken[] = response.data?.balances?.slice(0, limit).map((balance: any) => ({
+        tokenAddress: balance.token_address || balance.mint || '',
+        tokenSymbol: balance.token_symbol || balance.symbol || 'UNKNOWN',
+        marketCap: parseFloat(balance.market_cap || '0'),
+        volume24h: parseFloat(balance.volume_24h || '0'),
+        priceChange24h: parseFloat(balance.price_change_24h || '0'),
+        source: 'dune-sim',
         timestamp: Date.now()
       })) || [];
 
-      this.logger.info(`Fetched ${trendingTokens.length} trending tokens`);
+      this.logger.info(`Fetched ${trendingTokens.length} token balances`);
       return trendingTokens;
     } catch (error: any) {
       this.logger.error('Error fetching trending tokens', { error: error.message });
@@ -76,24 +74,25 @@ export class DuneClient {
 
   async getPumpFunGraduatesByMarketCap(limit: number = 20): Promise<TrendingToken[]> {
     try {
-      this.logger.info('Fetching Pump.fun graduates by market cap');
+      this.logger.info('Fetching tokens from Dune Sim API');
 
-      const queryId = 'your_pumpfun_marketcap_query_id';
+      const response = await this.client.get(`/balances/${this.walletAddress}`);
 
-      const response = await this.client.get(`/query/${queryId}/results`, {
-        params: { limit }
-      });
+      // Filter and sort by market cap
+      const tokens: TrendingToken[] = response.data?.balances
+        ?.filter((balance: any) => parseFloat(balance.market_cap || '0') > 0)
+        ?.sort((a: any, b: any) => parseFloat(b.market_cap || '0') - parseFloat(a.market_cap || '0'))
+        ?.slice(0, limit)
+        ?.map((balance: any) => ({
+          tokenAddress: balance.token_address || balance.mint || '',
+          tokenSymbol: balance.token_symbol || balance.symbol || 'UNKNOWN',
+          marketCap: parseFloat(balance.market_cap || '0'),
+          volume24h: parseFloat(balance.volume_24h || '0'),
+          source: 'dune-sim',
+          timestamp: Date.now()
+        })) || [];
 
-      const tokens: TrendingToken[] = response.data.result?.rows?.map((row: any) => ({
-        tokenAddress: row.token_address,
-        tokenSymbol: row.token_symbol,
-        marketCap: parseFloat(row.market_cap),
-        volume24h: parseFloat(row.volume_24h),
-        source: 'pumpfun',
-        timestamp: Date.now()
-      })) || [];
-
-      this.logger.info(`Fetched ${tokens.length} Pump.fun tokens`);
+      this.logger.info(`Fetched ${tokens.length} tokens`);
       return tokens;
     } catch (error: any) {
       this.logger.error('Error fetching Pump.fun tokens', { error: error.message });
