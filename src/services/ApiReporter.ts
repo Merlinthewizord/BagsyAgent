@@ -3,7 +3,7 @@ import { Position, Trade } from '../types';
 import { Logger } from 'winston';
 
 export class ApiReporter {
-  private client: AxiosInstance;
+  private client!: AxiosInstance;
   private logger: Logger;
   private enabled: boolean;
 

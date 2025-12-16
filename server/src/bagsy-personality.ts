@@ -1,4 +1,4 @@
-import Anthropic from 'anthropic';
+import Anthropic from '@anthropic-ai/sdk';
 
 export class BagsyPersonality {
   private client: Anthropic;

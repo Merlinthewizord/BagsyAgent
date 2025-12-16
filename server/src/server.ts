@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import { BagsyDatabase } from './database';
 import { BagsyPersonality } from './bagsy-personality';
 import { BagsyThought, ChatMessage, TradeActivity, PortfolioStats, BagsyGoal } from './types';
-import { v4 as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'crypto';
 
 dotenv.config();
 

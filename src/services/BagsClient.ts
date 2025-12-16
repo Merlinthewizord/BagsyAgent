@@ -235,4 +235,84 @@ export class BagsClient {
   getWalletAddress(): string {
     return this.wallet.publicKey.toBase58();
   }
+
+  async getClaimableFees(tokenMint: string): Promise<number> {
+    try {
+      this.logger.info('Checking claimable fees', { tokenMint });
+
+      const response = await this.client.get('/fees/claimable', {
+        params: {
+          tokenMint,
+          walletAddress: this.wallet.publicKey.toBase58()
+        }
+      });
+
+      return response.data.claimableAmount || 0;
+    } catch (error: any) {
+      this.logger.error('Error getting claimable fees', { error: error.message });
+      return 0;
+    }
+  }
+
+  async claimFees(tokenMint: string): Promise<{ success: boolean; amount?: number; txSignature?: string; error?: string }> {
+    try {
+      this.logger.info('Claiming fees', { tokenMint });
+
+      const response = await this.client.post('/fees/claim', {
+        tokenMint,
+        walletAddress: this.wallet.publicKey.toBase58()
+      });
+
+      const { transaction, amount } = response.data;
+
+      if (!transaction) {
+        return { success: false, error: 'No transaction returned from API' };
+      }
+
+      const txSignature = await this.signAndSendTransaction(transaction);
+
+      if (txSignature) {
+        this.logger.info('Fees claimed successfully', { amount, signature: txSignature });
+        return { success: true, amount, txSignature };
+      }
+
+      return { success: false, error: 'Failed to send transaction' };
+    } catch (error: any) {
+      this.logger.error('Error claiming fees', { error: error.message });
+      return { success: false, error: error.message };
+    }
+  }
+
+  async burnTokens(tokenMint: string, amount: string): Promise<{ success: boolean; txSignature?: string; error?: string }> {
+    try {
+      this.logger.info('Burning tokens', { tokenMint, amount });
+
+      // Solana incinerator address for burning tokens
+      const incineratorAddress = '1nc1nerator11111111111111111111111111111111';
+
+      // Use sell to incinerator as burn mechanism
+      const quote = await this.getQuote(
+        tokenMint,
+        this.solMint,
+        amount,
+        9999 // High slippage for burn
+      );
+
+      if (!quote) {
+        return { success: false, error: 'Failed to get burn quote' };
+      }
+
+      const txSignature = await this.executeSwap(quote);
+
+      if (txSignature) {
+        this.logger.info('Tokens burned successfully', { signature: txSignature });
+        return { success: true, txSignature };
+      }
+
+      return { success: false, error: 'Failed to execute burn transaction' };
+    } catch (error: any) {
+      this.logger.error('Error burning tokens', { error: error.message });
+      return { success: false, error: error.message };
+    }
+  }
 }
