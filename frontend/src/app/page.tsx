@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import BagsyHeader from '@/components/BagsyHeader';
 import ThoughtsStream from '@/components/ThoughtsStream';
-// import ChatInterface from '@/components/ChatInterface';
+import ChatInterface from '@/components/ChatInterface';
 import PortfolioStats from '@/components/PortfolioStats';
 import GoalsDisplay from '@/components/GoalsDisplay';
 import TradesPanel from '@/components/TradesPanel';
@@ -58,7 +58,7 @@ export default function Home() {
 
           {/* Right Column - Chat & Positions */}
           <div className="space-y-6">
-            {/* <ChatInterface socket={socket} /> */}
+            <ChatInterface />
             <PositionsPanel socket={socket} />
           </div>
         </div>
