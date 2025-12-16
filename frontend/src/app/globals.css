@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-bagsy-darker text-gray-100;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-bagsy-dark rounded-lg p-6 border border-gray-800 shadow-xl;
+  }
+
+  .btn-primary {
+    @apply bg-bagsy-primary hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-bagsy-secondary hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors;
+  }
+
+  .thought-bubble {
+    @apply bg-gray-800 rounded-2xl p-4 border border-gray-700 shadow-lg relative;
+  }
+
+  .chat-bubble-user {
+    @apply bg-blue-600 text-white rounded-2xl px-4 py-2 max-w-md ml-auto;
+  }
+
+  .chat-bubble-bagsy {
+    @apply bg-gray-700 text-gray-100 rounded-2xl px-4 py-2 max-w-md;
+  }
+
+  .stat-card {
+    @apply bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-4 border border-gray-700;
+  }
+
+  .trade-item {
+    @apply bg-gray-800 rounded-lg p-3 border-l-4 transition-all hover:bg-gray-750;
+  }
+
+  .trade-buy {
+    @apply border-green-500;
+  }
+
+  .trade-sell {
+    @apply border-red-500;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.8);
+  }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}

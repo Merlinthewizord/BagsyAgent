@@ -4,6 +4,7 @@ import { DuneClient } from './services/DuneClient';
 import { BagsClient } from './services/BagsClient';
 import { SignalAnalyzer } from './services/SignalAnalyzer';
 import { TradingEngine } from './services/TradingEngine';
+import { ApiReporter } from './services/ApiReporter';
 
 async function main() {
   const config = loadConfig();
@@ -34,6 +35,11 @@ async function main() {
   );
   const signalAnalyzer = new SignalAnalyzer(logger);
   const tradingEngine = new TradingEngine(bagsClient, config, logger);
+  const apiReporter = new ApiReporter(
+    process.env.API_SERVER_URL || '',
+    process.env.BOT_API_KEY || '',
+    logger
+  );
 
   // Display initial wallet balance
   const initialBalance = await bagsClient.getWalletBalance();
@@ -85,6 +91,16 @@ async function main() {
             kolBuyCount: signal.kolBuys.length,
             trendingSources: signal.trendingData.length
           });
+
+          // Report analysis thought for top signal
+          if (index === 0) {
+            apiReporter.reportThought({
+              type: 'analysis',
+              content: `🔍 Analyzing ${signal.tokenSymbol}: Score ${signal.score}/15. ${signal.signals.join(', ')}`,
+              relatedToken: signal.tokenAddress,
+              sentiment: signal.score >= 10 ? 'bullish' : signal.score >= 7 ? 'neutral' : 'cautious'
+            });
+          }
         });
       } else {
         logger.info('No trading signals found');
@@ -116,6 +132,20 @@ async function main() {
           });
         });
       }
+
+      // Report portfolio and positions to API
+      const solPrice = 150; // TODO: Fetch real SOL price
+      apiReporter.reportPortfolio({
+        totalValueSol: portfolioValue + currentBalance,
+        totalValueUsd: (portfolioValue + currentBalance) * solPrice,
+        positions: positions.length,
+        pnl24h: 0, // TODO: Calculate from trades
+        pnlAllTime: 0, // TODO: Calculate from all trades
+        winRate: 0, // TODO: Calculate from closed trades
+        totalTrades: 0 // TODO: Track total trades
+      });
+
+      apiReporter.reportPositions(positions);
 
       // 5. Cleanup old signals
       signalAnalyzer.clearOldSignals(3600000); // 1 hour

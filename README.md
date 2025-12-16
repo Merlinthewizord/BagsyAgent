@@ -1,9 +1,26 @@
 # BagsyAgent - Autonomous Token Trading Bot
 
-An autonomous Solana token trading agent that follows KOL (Key Opinion Leader) buys and trending tokens to identify and execute profitable trades.
+Meet **Bagsy** 🤖 - an autonomous Solana token trading agent with personality! Bagsy follows KOL (Key Opinion Leader) buys and trending tokens to identify and execute profitable trades, all while chatting with his community and sharing his thoughts.
 
-## Features
+**Mission**: Grow wallet to $100,000 💰 and $BAGSY token to $100M market cap 🚀
 
+## ✨ Features
+
+### 🎨 Interactive Web Dashboard
+- **Real-Time Portfolio**: Watch Bagsy's wallet grow live
+- **Chat with Bagsy**: Talk to the AI trader powered by Claude
+- **Thought Stream**: See Bagsy's analysis and decision-making process
+- **Live Trades**: Real-time trade execution and P&L tracking
+- **Goal Tracking**: Progress bars for the $100k and $100M goals
+
+### 🤖 Bagsy's Personality
+- Quirky, funny, yet determined AI trader
+- Transparent about wins AND losses
+- Shares thoughts and analysis in real-time
+- Interactive chat powered by Claude API
+- On a mission to prove AI can outperform humans
+
+### 📈 Core Trading Features
 - **KOL Tracking**: Monitors wallet activities of influential traders and KOLs
 - **Trend Analysis**: Tracks trending tokens across multiple DEXs (Raydium, PumpSwap, Pump.fun)
 - **Signal Scoring**: Advanced algorithm to score trading opportunities based on multiple factors
@@ -11,333 +28,277 @@ An autonomous Solana token trading agent that follows KOL (Key Opinion Leader) b
 - **Risk Management**: Built-in stop-loss, take-profit, and position sizing
 - **Portfolio Management**: Tracks positions and manages multiple simultaneous trades
 
-## Architecture
+## 🚀 Quick Start
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      BagsyAgent                             │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │ DuneClient   │  │ BagsClient   │  │SignalAnalyzer│     │
-│  │              │  │              │  │              │     │
-│  │ - KOL Buys   │  │ - Get Quote  │  │ - Score      │     │
-│  │ - Trending   │  │ - Execute    │  │ - Aggregate  │     │
-│  │ - Pump.fun   │  │ - Balance    │  │ - Filter     │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │            Trading Engine                           │   │
-│  │  - Position Management                              │   │
-│  │  - Entry/Exit Logic                                 │   │
-│  │  - Risk Management                                  │   │
-│  └─────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-```
+### Option 1: Full Stack (Trading Bot + Frontend)
 
-## Prerequisites
-
-1. **Node.js** (v18 or higher)
-2. **Solana Wallet** with SOL for trading
-3. **Dune Analytics API Key** - Get from [Dune Analytics](https://dune.com/settings/api)
-4. **Bags.fm API Key** - Get from [Bags Developer Portal](https://dev.bags.fm)
-5. **Solana RPC URL** - Use public or private RPC endpoint
-
-## Installation
-
-### 1. Clone the Repository
+**See [FRONTEND_README.md](FRONTEND_README.md) for complete frontend setup!**
 
 ```bash
-git clone https://github.com/yourusername/BagsyAgent.git
-cd BagsyAgent
-```
-
-### 2. Install Dependencies
-
-```bash
+# 1. Install all dependencies
 npm install
-```
+cd server && npm install
+cd ../frontend && npm install
+cd ..
 
-### 3. Configure Environment Variables
-
-Copy the example environment file and fill in your credentials:
-
-```bash
+# 2. Configure environment
 cp .env.example .env
+cp server/.env.example server/.env
+cp frontend/.env.example frontend/.env.local
+# Edit each .env file with your keys
+
+# 3. Start all services
+# Terminal 1: API Server
+cd server && npm run dev
+
+# Terminal 2: Frontend
+cd frontend && npm run dev
+
+# Terminal 3: Trading Bot
+npm run dev
+
+# 4. Open http://localhost:3000
 ```
 
-Edit `.env` with your values:
-
-```env
-# API Keys
-DUNE_API_KEY=your_dune_api_key_here
-BAGS_API_KEY=your_bags_api_key_here
-
-# Solana Configuration
-SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
-WALLET_PRIVATE_KEY=your_base58_encoded_private_key
-
-# Trading Parameters
-MAX_POSITION_SIZE_SOL=1.0
-MAX_TOTAL_PORTFOLIO_SOL=10.0
-MIN_LIQUIDITY_USD=50000
-SLIPPAGE_BPS=100
-
-# Risk Management
-STOP_LOSS_PERCENTAGE=20
-TAKE_PROFIT_PERCENTAGE=50
-
-# Signal Thresholds
-KOL_BUY_MIN_AMOUNT_SOL=0.1
-TRENDING_TOKEN_MIN_VOLUME_24H=100000
-SIGNAL_SCORE_THRESHOLD=7
-
-# Agent Settings
-CHECK_INTERVAL_SECONDS=60
-LOG_LEVEL=info
-```
-
-### 4. Build the Project
+### Option 2: Trading Bot Only (Headless)
 
 ```bash
+# 1. Install dependencies
+npm install
+
+# 2. Configure environment
+cp .env.example .env
+# Edit .env with your keys (no need for API_SERVER_URL)
+
+# 3. Build and run
 npm run build
-```
-
-## Usage
-
-### Start the Bot
-
-```bash
 npm start
 ```
 
-### Development Mode (with hot reload)
-
-```bash
-npm run dev
-```
-
-## How It Works
-
-### 1. Data Collection
-
-The agent continuously monitors:
-- **KOL Buys**: Recent purchases by influential wallets
-- **Trending Tokens**: High-volume tokens on Raydium, PumpSwap, and other DEXs
-- **Pump.fun Graduates**: Newly launched tokens with momentum
-
-### 2. Signal Analysis
-
-Each token receives a score (0-15) based on:
-
-| Factor | Max Points | Description |
-|--------|------------|-------------|
-| KOL Activity | 5 | Number and size of recent KOL buys |
-| Volume | 5 | 24h trading volume |
-| Multiple KOLs | 2 | Bonus if multiple KOLs are buying |
-| Price Momentum | 3 | 24h price change |
-| Volume Sources | 2 | Trending on multiple platforms |
-
-Only tokens scoring above `SIGNAL_SCORE_THRESHOLD` (default: 7) are considered for trading.
-
-### 3. Position Management
-
-**Entry:**
-- Position size scales with signal strength
-- Maximum per-position limit enforced
-- Portfolio-wide exposure cap
-
-**Exit Conditions:**
-- **Stop Loss**: Triggered at -20% (configurable)
-- **Take Profit**: Triggered at +50% (configurable)
-- **Trailing Stop**: Moves to breakeven at +30%
-- **Time Limit**: Auto-exit after 24 hours
-
-### 4. Risk Management
-
-- Maximum position size per trade
-- Maximum total portfolio exposure
-- Minimum liquidity requirements
-- Slippage protection
-- Automatic position monitoring
-
-## Configuration
-
-### Trading Parameters
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `MAX_POSITION_SIZE_SOL` | 1.0 | Maximum SOL per trade |
-| `MAX_TOTAL_PORTFOLIO_SOL` | 10.0 | Maximum total exposure |
-| `MIN_LIQUIDITY_USD` | 50000 | Minimum token liquidity |
-| `SLIPPAGE_BPS` | 100 | Slippage tolerance (1%) |
-
-### Risk Parameters
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `STOP_LOSS_PERCENTAGE` | 20 | Stop loss threshold |
-| `TAKE_PROFIT_PERCENTAGE` | 50 | Take profit target |
-
-### Signal Thresholds
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `KOL_BUY_MIN_AMOUNT_SOL` | 0.1 | Minimum KOL buy size to track |
-| `TRENDING_TOKEN_MIN_VOLUME_24H` | 100000 | Minimum 24h volume |
-| `SIGNAL_SCORE_THRESHOLD` | 7 | Minimum score to trade |
-
-## Setting Up Dune Analytics Queries
-
-The bot relies on custom Dune queries for KOL tracking and trending tokens. You'll need to create these queries in your Dune account:
-
-### Required Queries
-
-1. **KOL Buys Query**: Track recent purchases by known KOL wallets
-2. **Trending Tokens Query**: Identify high-volume tokens
-3. **Pump.fun Graduates Query**: Monitor newly launched tokens
-
-After creating these queries, update the query IDs in `src/services/DuneClient.ts`:
-
-```typescript
-// Replace these with your actual Dune query IDs
-const queryId = 'your_kol_buys_query_id';
-const queryId = 'your_trending_tokens_query_id';
-const queryId = 'your_pumpfun_marketcap_query_id';
-```
-
-## MCP Servers (Optional)
-
-For enhanced functionality, you can integrate MCP servers:
-
-### 1. Memecoin Radar MCP
-
-Provides additional trending token data:
-
-```bash
-# Clone and install
-git clone https://github.com/kukapay/memecoin-radar-mcp.git
-cd memecoin-radar-mcp
-uv sync
-uv run mcp install main.py --name "Memecoin Radar"
-```
-
-### 2. GOAT MCP
-
-For wallet operations and blockchain interactions:
-
-```bash
-git clone https://github.com/goat-sdk/goat.git
-cd goat/typescript
-pnpm install && pnpm build
-cd examples/by-framework/model-context-protocol
-```
-
-### 3. Solana DeFi Analytics MCP
-
-For wallet analysis and risk assessment:
-
-```bash
-git clone https://github.com/kirtiraj22/Solana-DeFi-Analytics-MCP-Server.git
-cd Solana-DeFi-Analytics-MCP-Server
-pnpm install
-```
-
-## Monitoring
-
-The bot logs all activities to:
-- **Console**: Real-time colored output
-- **combined.log**: All log levels
-- **error.log**: Errors only
-
-### Log Levels
-
-Set `LOG_LEVEL` in `.env`:
-- `error`: Only errors
-- `warn`: Warnings and errors
-- `info`: General information (default)
-- `debug`: Detailed debugging
-
-## Safety & Warnings
-
-⚠️ **IMPORTANT WARNINGS** ⚠️
-
-1. **Test First**: Always test with small amounts on devnet/testnet
-2. **Market Risk**: Crypto markets are highly volatile - you can lose money
-3. **Smart Contract Risk**: DEX and token contracts may have vulnerabilities
-4. **No Guarantees**: Past performance doesn't guarantee future results
-5. **Monitor Actively**: Don't leave the bot running unattended initially
-6. **Secure Keys**: Never share your private keys or commit them to git
-7. **API Limits**: Be aware of rate limits on Dune and Bags.fm APIs
-
-## Troubleshooting
-
-### Common Issues
-
-**"Missing required environment variable"**
-- Ensure all required variables are set in `.env`
-
-**"Failed to get quote"**
-- Check your Bags.fm API key
-- Verify you have sufficient SOL balance
-- Check if token has enough liquidity
-
-**"Error fetching KOL buys"**
-- Verify Dune API key is valid
-- Check if query IDs are correct
-- Ensure queries are public or accessible
-
-**Low signal scores**
-- Market may be quiet
-- Adjust `SIGNAL_SCORE_THRESHOLD` lower (with caution)
-- Check if data sources are returning results
-
-## Development
-
-### Project Structure
+## 📁 Project Structure
 
 ```
 BagsyAgent/
-├── src/
-│   ├── config/           # Configuration loader
-│   ├── services/         # Core services
-│   │   ├── BagsClient.ts       # Bags.fm API client
-│   │   ├── DuneClient.ts       # Dune Analytics client
-│   │   ├── SignalAnalyzer.ts   # Signal scoring
-│   │   └── TradingEngine.ts    # Trade execution
-│   ├── types/            # TypeScript interfaces
-│   ├── utils/            # Utilities (logger, etc.)
-│   └── index.ts          # Main entry point
-├── .env.example          # Example environment file
-├── package.json          # Dependencies
-└── tsconfig.json         # TypeScript config
+├── frontend/              # Next.js web dashboard
+│   ├── src/
+│   │   ├── app/          # Pages and layouts
+│   │   └── components/   # React components
+│   └── package.json
+│
+├── server/               # Express API server
+│   ├── src/
+│   │   ├── server.ts     # Main API server
+│   │   ├── database.ts   # SQLite database
+│   │   └── bagsy-personality.ts  # AI personality
+│   └── package.json
+│
+├── src/                  # Trading bot
+│   ├── services/
+│   │   ├── DuneClient.ts
+│   │   ├── BagsClient.ts
+│   │   ├── SignalAnalyzer.ts
+│   │   ├── TradingEngine.ts
+│   │   └── ApiReporter.ts  # Reports to frontend
+│   └── index.ts
+│
+├── docs/                 # Documentation
+│   ├── ARCHITECTURE.md
+│   └── DUNE_QUERIES.md
+│
+├── FRONTEND_README.md    # Frontend-specific docs
+└── README.md            # This file
 ```
 
-### Adding New Features
+## 🔑 Required API Keys
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+1. **Dune Analytics API Key**: Get from [dune.com/settings/api](https://dune.com/settings/api)
+   - Used to fetch KOL buys and trending tokens
+   - Your key: `5njv1Lb6dxqEF32tN185oFFSuFba1ITj`
 
-## License
+2. **Bags.fm API Key**: Get from [dev.bags.fm](https://dev.bags.fm)
+   - Used to execute trades on Solana
 
-MIT License - See LICENSE file for details
+3. **Solana Wallet Private Key**: Your trading wallet
+   - Base58-encoded private key
+   - Fund with SOL for trading
 
-## Disclaimer
+4. **Anthropic API Key** (for frontend): Get from [console.anthropic.com](https://console.anthropic.com)
+   - Powers Bagsy's chat personality
+   - Optional - only needed for frontend
+
+## ⚙️ Configuration
+
+See `.env.example` for all configuration options.
+
+**Key Settings**:
+```env
+# Trading Limits
+MAX_POSITION_SIZE_SOL=1.0           # Max per trade
+MAX_TOTAL_PORTFOLIO_SOL=10.0        # Max total exposure
+
+# Risk Management
+STOP_LOSS_PERCENTAGE=20             # Auto-sell at -20%
+TAKE_PROFIT_PERCENTAGE=50           # Auto-sell at +50%
+
+# Signal Thresholds
+SIGNAL_SCORE_THRESHOLD=7            # Minimum score to trade (0-15)
+KOL_BUY_MIN_AMOUNT_SOL=0.1         # Min KOL buy to track
+TRENDING_TOKEN_MIN_VOLUME_24H=100000  # Min volume to consider
+
+# Frontend Integration
+API_SERVER_URL=http://localhost:3001  # API server URL
+BOT_API_KEY=your_secret_key           # Secure bot-to-server auth
+```
+
+## 🎯 How It Works
+
+1. **Data Collection** (every 60s)
+   - Fetch KOL buys from Dune Analytics
+   - Get trending tokens from multiple DEXs
+   - Track Pump.fun graduates
+
+2. **Signal Analysis**
+   - Score each token (0-15 points)
+   - Consider: KOL activity, volume, momentum, multi-source confirmation
+   - Filter by minimum score threshold
+
+3. **Trade Execution**
+   - Buy tokens with high scores
+   - Set stop-loss and take-profit orders
+   - Execute via bags.fm API
+
+4. **Position Management**
+   - Monitor prices continuously
+   - Auto-exit on stop-loss or take-profit
+   - Trailing stop at +30% profit
+   - Time-based exit after 24h
+
+5. **Frontend Updates** (if enabled)
+   - Report all trades to API server
+   - Share thoughts and analysis
+   - Update portfolio stats
+   - Enable chat with community
+
+## 💬 Chatting with Bagsy
+
+When the frontend is running, you can chat with Bagsy at `http://localhost:3000`
+
+Example conversations:
+- "How's the trading going?"
+- "What are you currently holding?"
+- "Why did you buy that token?"
+- "How close are you to $100k?"
+
+Bagsy will respond with his quirky personality, discussing his trades, strategy, and goals!
+
+## 📊 Dashboard Features
+
+- **Portfolio Stats**: Real-time wallet value, P&L, win rate
+- **Active Positions**: All open trades with entry price, current price, P&L
+- **Trade History**: Complete log of buys and sells
+- **Thoughts Stream**: Bagsy's live analysis and decision-making
+- **Goals Progress**: Visual progress toward $100k and $100M
+- **Chat Interface**: Talk directly to Bagsy
+
+## 📚 Documentation
+
+- **[FRONTEND_README.md](FRONTEND_README.md)**: Complete frontend and API server guide
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)**: Step-by-step setup instructions
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**: System architecture details
+- **[docs/DUNE_QUERIES.md](docs/DUNE_QUERIES.md)**: Example Dune Analytics queries
+
+## 🛡️ Safety & Warnings
+
+⚠️ **IMPORTANT** ⚠️
+
+1. **Test First**: Start with small amounts
+2. **Market Risk**: Crypto is highly volatile - you can lose money
+3. **No Guarantees**: Past performance doesn't guarantee future results
+4. **Monitor Initially**: Watch the bot closely at first
+5. **Secure Keys**: Never share private keys or commit them to git
+6. **API Limits**: Be aware of rate limits on APIs
+
+## 🎨 Customizing Bagsy
+
+### Change Avatar
+Replace `frontend/public/bagsy-avatar.png` with your character image
+
+### Adjust Personality
+Edit `server/src/bagsy-personality.ts` to change:
+- Speaking style
+- Humor level
+- Response format
+- Emoji usage
+
+### Modify Colors
+Edit `frontend/tailwind.config.ts` for custom theme colors
+
+## 🚢 Deployment
+
+### Trading Bot
+Deploy to any server:
+- Railway
+- Render
+- DigitalOcean
+- AWS EC2
+
+### Frontend
+- **Vercel**: `vercel deploy` (recommended)
+- **Netlify**: Connect GitHub repo
+- **Static hosting**: `npm run build` → deploy `/out`
+
+### API Server
+- **Railway**: `railway up`
+- **Render**: Connect GitHub repo
+- **Heroku**: `git push heroku main`
+
+## 🐛 Troubleshooting
+
+**Bot not trading?**
+- Check Dune query IDs are configured
+- Verify API keys are valid
+- Check signal score threshold isn't too high
+- Review logs for errors
+
+**Frontend not updating?**
+- Verify API server is running
+- Check `BOT_API_KEY` matches in bot and server
+- Confirm WebSocket connection in browser console
+
+**Chat not working?**
+- Set `ANTHROPIC_API_KEY` in server/.env
+- Check API credits/quota
+- Review server logs
+
+## 📈 Performance Tips
+
+- Start conservative with position sizes
+- Monitor for 24h before increasing limits
+- Adjust signal threshold based on market conditions
+- Review and optimize Dune queries for speed
+- Use a good Solana RPC for reliability
+
+## 🤝 Contributing
+
+Contributions welcome! Areas for improvement:
+- Additional data sources
+- Advanced risk management
+- Machine learning for signal scoring
+- More DEX integrations
+- Enhanced frontend features
+
+## 📝 License
+
+MIT License - See [LICENSE](LICENSE)
+
+## ⚠️ Disclaimer
 
 This software is for educational purposes only. Use at your own risk. The authors are not responsible for any financial losses incurred while using this bot. Always do your own research and never invest more than you can afford to lose.
 
-## Support
-
-For issues, questions, or contributions:
-- Open an issue on GitHub
-- Read the documentation carefully
-- Test with small amounts first
+Cryptocurrency trading carries significant risk. Bagsy is an experimental AI agent and should not be relied upon for financial advice.
 
 ---
 
-**Happy Trading! 🚀**
+**Watch Bagsy trade live! 🚀**
 
-Remember: The best trade is often the one you don't make. Trade responsibly!
+Start the frontend and witness an AI on a mission to $100k!
