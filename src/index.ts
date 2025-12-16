@@ -9,6 +9,8 @@ import { BagsyTokenManager } from './services/BagsyTokenManager';
 import { KOLConsensusTracker } from './services/KOLConsensusTracker';
 import { OdinBotClient } from './services/OdinBotClient';
 import { CopyTradingManager } from './services/CopyTradingManager';
+import { Mem0Client } from './services/Mem0Client';
+import { WalletMemoryTracker } from './services/WalletMemoryTracker';
 
 async function main() {
   const config = loadConfig();
@@ -75,6 +77,25 @@ async function main() {
     await copyTradingManager.forceSyncNow();
   } else {
     logger.info('OdinBot copy trading disabled');
+  }
+
+  // Initialize Mem0 AI memory layer
+  const mem0Client = new Mem0Client(
+    process.env.MEM0_API_KEY || '',
+    logger,
+    process.env.MEM0_AGENT_ID || 'bagsy-agent',
+    process.env.MEM0_ENABLED === 'true'
+  );
+
+  const walletMemoryTracker = new WalletMemoryTracker(mem0Client, logger);
+
+  if (mem0Client.isEnabled()) {
+    logger.info('Mem0 AI memory layer enabled');
+    // Get initial memory stats
+    const memStats = await walletMemoryTracker.getMemoryStats();
+    logger.info('Memory stats:', memStats);
+  } else {
+    logger.info('Mem0 AI memory layer disabled');
   }
 
   // Initialize Bagsy token manager (if token mint is configured)
@@ -224,7 +245,35 @@ async function main() {
       // 6. Check and sync OdinBot copy trading mirrors
       await copyTradingManager.checkAndSync();
 
-      // 7. Cleanup old signals
+      // 7. Learn and store winning wallets to memory
+      if (mem0Client.isEnabled() && consensusSignals.length > 0) {
+        // Store top consensus tokens with multiple KOL buyers
+        const topConsensus = consensusSignals
+          .filter(c => c.buyCount >= 3) // At least 3 KOLs bought
+          .slice(0, 5); // Top 5
+
+        for (const consensus of topConsensus) {
+          await walletMemoryTracker.learnFromConsensus(
+            consensus.tokenSymbol,
+            consensus.kolBuyers,
+            'pending' // Will update with outcome later
+          );
+        }
+
+        // Store memory stats every 10th iteration
+        if (iteration % 10 === 0) {
+          const memStats = await walletMemoryTracker.getMemoryStats();
+          logger.info('Memory stats:', memStats);
+
+          apiReporter.reportThought({
+            type: 'reflection',
+            content: `🧠 Memory: ${memStats.totalMemories} memories stored. ${memStats.winningWallets} winning wallets tracked. Learning from ${memStats.consensusPatterns} consensus patterns.`,
+            sentiment: 'neutral'
+          });
+        }
+      }
+
+      // 8. Cleanup old signals
       signalAnalyzer.clearOldSignals(3600000); // 1 hour
 
       logger.info(`Iteration ${iteration} complete. Next check in ${config.checkIntervalSeconds}s`);
