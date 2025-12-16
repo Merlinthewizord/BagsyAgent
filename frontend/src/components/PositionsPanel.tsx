@@ -91,7 +91,7 @@ export default function PositionsPanel({ socket }: PositionsPanelProps) {
                 </div>
                 <div
                   className={`flex items-center space-x-1 font-bold text-lg ${
-                    pos.pnlPercentage >= 0 ? 'text-green-500' : 'text-red-500'
+                    pos.pnlPercentage >= 0 ? 'text-bagsy-success' : 'text-bagsy-danger'
                   }`}
                 >
                   {pos.pnlPercentage >= 0 ? (
@@ -142,7 +142,7 @@ export default function PositionsPanel({ socket }: PositionsPanelProps) {
               <div className="mt-3 relative w-full h-2 bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className={`absolute left-0 top-0 h-full transition-all ${
-                    pos.pnlPercentage >= 0 ? 'bg-green-500' : 'bg-red-500'
+                    pos.pnlPercentage >= 0 ? 'bg-bagsy-success' : 'bg-bagsy-danger'
                   }`}
                   style={{
                     width: `${Math.min(Math.abs(pos.pnlPercentage) * 2, 100)}%`,

@@ -59,13 +59,13 @@ export default function ThoughtsStream({ socket }: ThoughtsStreamProps) {
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'bullish':
-        return 'text-green-500';
+        return 'text-bagsy-success';
       case 'bearish':
-        return 'text-red-500';
+        return 'text-bagsy-danger';
       case 'excited':
-        return 'text-yellow-500';
+        return 'text-bagsy-secondary';
       case 'cautious':
-        return 'text-orange-500';
+        return 'text-bagsy-accent';
       default:
         return 'text-gray-400';
     }

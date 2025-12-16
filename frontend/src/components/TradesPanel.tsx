@@ -80,9 +80,9 @@ export default function TradesPanel({ socket }: TradesPanelProps) {
               <div className="flex items-start justify-between">
                 <div className="flex items-start space-x-2 flex-1">
                   {trade.type === 'buy' ? (
-                    <ArrowUpCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <ArrowUpCircle className="w-5 h-5 text-bagsy-success flex-shrink-0 mt-0.5" />
                   ) : (
-                    <ArrowDownCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <ArrowDownCircle className="w-5 h-5 text-bagsy-danger flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
@@ -118,7 +118,7 @@ export default function TradesPanel({ socket }: TradesPanelProps) {
                   {trade.pnl !== undefined && (
                     <div
                       className={`font-semibold text-sm ${
-                        trade.pnl >= 0 ? 'text-green-500' : 'text-red-500'
+                        trade.pnl >= 0 ? 'text-bagsy-success' : 'text-bagsy-danger'
                       }`}
                     >
                       {trade.pnl >= 0 ? '+' : ''}
