@@ -372,27 +372,34 @@ setInterval(async () => {
   }
 }, 60000); // Every 1 minute
 
-// Initial fetch of BAGSY market cap
-(async () => {
+// Start server
+const PORT = process.env.PORT || 3001;
+httpServer.listen(PORT, async () => {
+  console.log(`🚀 Bagsy API Server running on port ${PORT}`);
+  console.log(`💬 WebSocket server ready`);
+  console.log(`📊 Dashboard: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+
+  // Initial fetch of BAGSY market cap
   try {
+    console.log('Fetching initial $BAGSY market cap...');
     const marketCap = await bagsyTokenService.getMarketCap();
     if (marketCap > 0) {
       currentPortfolio.bagsyTokenMcap = marketCap;
       bagsyGoals[1].current = marketCap;
       bagsyGoals[1].progress = (marketCap / bagsyGoals[1].target) * 100;
-      console.log(`Initial $BAGSY market cap: $${(marketCap / 1000000).toFixed(2)}M`);
+
+      // Broadcast to all connected clients
+      io.emit('portfolio', currentPortfolio);
+      io.emit('goals', bagsyGoals);
+
+      console.log(`✅ Initial $BAGSY market cap: $${(marketCap / 1000000).toFixed(2)}M`);
+      console.log(`   Progress to $100M: ${bagsyGoals[1].progress.toFixed(1)}%`);
+    } else {
+      console.log('⚠️  Could not fetch $BAGSY market cap - will retry in 1 minute');
     }
   } catch (error) {
-    console.error('Error fetching initial BAGSY market cap:', error);
+    console.error('❌ Error fetching initial BAGSY market cap:', error);
   }
-})();
-
-// Start server
-const PORT = process.env.PORT || 3001;
-httpServer.listen(PORT, () => {
-  console.log(`🚀 Bagsy API Server running on port ${PORT}`);
-  console.log(`💬 WebSocket server ready`);
-  console.log(`📊 Dashboard: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
 });
 
 // Graceful shutdown

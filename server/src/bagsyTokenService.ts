@@ -86,12 +86,14 @@ export class BagsyTokenService {
   }
 
   private async fetchFromDexScreener(): Promise<number> {
+    console.log('📡 Attempting to fetch from DexScreener...');
     const response = await axios.get(
       `https://api.dexscreener.com/latest/dex/tokens/${BAGSY_TOKEN_ADDRESS}`,
       { timeout: 5000 }
     );
 
     if (response.data?.pairs && response.data.pairs.length > 0) {
+      console.log(`   Found ${response.data.pairs.length} pairs on DexScreener`);
       // Get the pair with highest liquidity
       const bestPair = response.data.pairs.reduce((best: any, current: any) => {
         const currentLiq = parseFloat(current.liquidity?.usd || '0');
@@ -101,9 +103,13 @@ export class BagsyTokenService {
 
       const marketCap = parseFloat(bestPair.fdv || bestPair.marketCap || '0');
       if (marketCap > 0) {
-        console.log(`BAGSY Market Cap from DexScreener: $${(marketCap / 1000000).toFixed(2)}M`);
+        console.log(`   ✅ BAGSY Market Cap from DexScreener: $${(marketCap / 1000000).toFixed(2)}M`);
         return marketCap;
+      } else {
+        console.log(`   ⚠️  No market cap data in best pair`);
       }
+    } else {
+      console.log('   ❌ No pairs found on DexScreener');
     }
 
     return 0;
