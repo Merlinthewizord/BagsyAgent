@@ -41,6 +41,7 @@ let currentPortfolio: PortfolioStats = {
 };
 
 let currentPositions: any[] = [];
+let currentWalletTokens: any[] = [];
 
 // Goals
 const bagsyGoals: BagsyGoal[] = [
@@ -72,6 +73,7 @@ io.on('connection', (socket) => {
   socket.emit('portfolio', currentPortfolio);
   socket.emit('positions', currentPositions);
   socket.emit('goals', bagsyGoals);
+  socket.emit('wallet-tokens', currentWalletTokens);
 
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
@@ -123,6 +125,10 @@ app.get('/api/portfolio', (req, res) => {
 // Get current positions
 app.get('/api/positions', (req, res) => {
   res.json(currentPositions);
+});
+n// Get wallet tokens
+app.get('/api/wallet-tokens', (req, res) => {
+  res.json(currentWalletTokens);
 });
 
 // Get goals
@@ -288,6 +294,18 @@ app.post('/api/bot/positions', (req, res) => {
 
   currentPositions = req.body;
   io.emit('positions', currentPositions);
+  res.json({ success: true });
+});
+n// Update wallet tokens (called by trading bot)
+app.post('/api/bot/wallet-tokens', (req, res) => {
+  const { apiKey } = req.headers;
+
+  if (apiKey !== process.env.BOT_API_KEY) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  currentWalletTokens = req.body;
+  io.emit('wallet-tokens', currentWalletTokens);
   res.json({ success: true });
 });
 
