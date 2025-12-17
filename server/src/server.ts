@@ -126,7 +126,7 @@ app.get('/api/portfolio', (req, res) => {
 app.get('/api/positions', (req, res) => {
   res.json(currentPositions);
 });
-n// Get wallet tokens
+// Get wallet tokens
 app.get('/api/wallet-tokens', (req, res) => {
   res.json(currentWalletTokens);
 });
@@ -296,7 +296,7 @@ app.post('/api/bot/positions', (req, res) => {
   io.emit('positions', currentPositions);
   res.json({ success: true });
 });
-n// Update wallet tokens (called by trading bot)
+// Update wallet tokens (called by trading bot)
 app.post('/api/bot/wallet-tokens', (req, res) => {
   const { apiKey } = req.headers;
 
