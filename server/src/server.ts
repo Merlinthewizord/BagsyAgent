@@ -5,6 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { BagsyDatabase } from './database';
 import { BagsyPersonality } from './bagsy-personality';
+import { BagsyTokenService } from './bagsyTokenService';
 import { BagsyThought, ChatMessage, TradeActivity, PortfolioStats, BagsyGoal } from './types';
 import { randomUUID as uuidv4 } from 'crypto';
 
@@ -26,6 +27,7 @@ app.use(express.json());
 // Initialize services
 const db = new BagsyDatabase();
 const bagsy = new BagsyPersonality(process.env.ANTHROPIC_API_KEY || '');
+const bagsyTokenService = new BagsyTokenService();
 
 // In-memory state (synced with trading bot)
 let currentPortfolio: PortfolioStats = {
@@ -347,6 +349,43 @@ setInterval(() => {
     broadcastThought(thought);
   }
 }, 300000); // Every 5 minutes
+
+// Update $BAGSY token market cap periodically
+setInterval(async () => {
+  try {
+    const marketCap = await bagsyTokenService.getMarketCap();
+    if (marketCap > 0) {
+      currentPortfolio.bagsyTokenMcap = marketCap;
+
+      // Update goals
+      bagsyGoals[1].current = marketCap;
+      bagsyGoals[1].progress = (marketCap / bagsyGoals[1].target) * 100;
+
+      // Broadcast updated portfolio and goals
+      io.emit('portfolio', currentPortfolio);
+      io.emit('goals', bagsyGoals);
+
+      console.log(`Updated $BAGSY market cap: $${(marketCap / 1000000).toFixed(2)}M`);
+    }
+  } catch (error) {
+    console.error('Error updating BAGSY market cap:', error);
+  }
+}, 60000); // Every 1 minute
+
+// Initial fetch of BAGSY market cap
+(async () => {
+  try {
+    const marketCap = await bagsyTokenService.getMarketCap();
+    if (marketCap > 0) {
+      currentPortfolio.bagsyTokenMcap = marketCap;
+      bagsyGoals[1].current = marketCap;
+      bagsyGoals[1].progress = (marketCap / bagsyGoals[1].target) * 100;
+      console.log(`Initial $BAGSY market cap: $${(marketCap / 1000000).toFixed(2)}M`);
+    }
+  } catch (error) {
+    console.error('Error fetching initial BAGSY market cap:', error);
+  }
+})();
 
 // Start server
 const PORT = process.env.PORT || 3001;

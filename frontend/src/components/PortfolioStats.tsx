@@ -186,10 +186,21 @@ export default function PortfolioStats({ socket }: PortfolioStatsProps) {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <span className="text-2xl">💎</span>
-                <span className="text-base font-black text-white">$BAGSY Token</span>
+                <div>
+                  <span className="text-base font-black text-white">$BAGSY Token</span>
+                  <a
+                    href="https://solscan.io/token/hqgZKMLZRN4tMf3vtnBzFL6L33cwPqHbR7t1LRrBAGS"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-xs text-purple-300 hover:text-purple-200 transition-colors font-mono mt-0.5"
+                    title="View on Solscan"
+                  >
+                    hqgZ...BAGS
+                  </a>
+                </div>
               </div>
               <span className="text-xs text-purple-300 bg-purple-500/20 px-3 py-1 rounded-full font-semibold">
-                My Token
+                Live
               </span>
             </div>
             <div className="text-3xl font-black neon-text-pink text-purple-400 mb-2">
