@@ -38,8 +38,9 @@ export class BagsyDatabase {
         tokenAmount REAL,
         price REAL,
         txSignature TEXT,
-        reason TEXT NOT NULL,
-        pnl REAL
+        reason TEXT,
+        pnl REAL,
+        fee REAL
       );
 
       CREATE TABLE IF NOT EXISTS portfolio_history (
@@ -112,8 +113,8 @@ export class BagsyDatabase {
     const stmt = this.db.prepare(`
       INSERT INTO trade_activity (
         id, timestamp, type, tokenAddress, tokenSymbol,
-        amountSol, tokenAmount, price, txSignature, reason, pnl
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        amountSol, tokenAmount, price, txSignature, reason, pnl, fee
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     stmt.run(
       trade.id,
@@ -125,8 +126,9 @@ export class BagsyDatabase {
       trade.tokenAmount || null,
       trade.price || null,
       trade.txSignature || null,
-      trade.reason,
-      trade.pnl || null
+      trade.reason || null,
+      trade.pnl || null,
+      trade.fee || null
     );
   }
 
