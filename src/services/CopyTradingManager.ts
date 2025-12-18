@@ -1,6 +1,6 @@
 import { Logger } from 'winston';
 import { OdinBotClient, MirrorWallet } from './OdinBotClient';
-import { getQualifiedWallets, getWalletsByPerformance, KOLWallet } from '../data/kol-wallets';
+import { getQualifiedWallets, KOLWallet } from '../data/kol-wallets';
 import { ApiReporter } from './ApiReporter';
 
 /**
@@ -21,7 +21,7 @@ export class CopyTradingManager {
     apiReporter: ApiReporter,
     logger: Logger,
     syncIntervalHours: number = 24,
-    defaultBuyAmount: number = 0.5,
+    defaultBuyAmount: number = 0.01,
     defaultSellPercentage: number = 100
   ) {
     this.odinBot = odinBot;
@@ -41,39 +41,22 @@ export class CopyTradingManager {
   }
 
   /**
-   * Get top performing wallets to mirror
+   * Get all wallets to mirror from curated list
    */
-  getWalletsToMirror(maxWallets: number = 20): KOLWallet[] {
-    // Get qualified wallets (meeting minimum performance criteria)
-    const qualified = getQualifiedWallets(
-      60,  // minWinRate: 60%
-      50,  // minPnL: 50 SOL
-      20   // minTrades: 20
-    );
+  getWalletsToMirror(maxWallets: number = 314): KOLWallet[] {
+    // Return all wallets from our curated list (no filtering needed)
+    const allWallets = getQualifiedWallets();
 
-    // Sort by performance and take top N
-    const sortedByPerformance = getWalletsByPerformance();
-    const topPerformers = sortedByPerformance
-      .filter(w => qualified.some(q => q.address === w.address))
-      .slice(0, maxWallets);
-
-    return topPerformers;
+    // Return up to maxWallets (default 314 to include all)
+    return allWallets.slice(0, maxWallets);
   }
 
   /**
    * Convert KOL wallet to OdinBot mirror format
    */
   private kolToMirror(kol: KOLWallet): MirrorWallet {
-    // Adjust buy amount based on wallet's average trade size
-    let buyAmount = this.defaultBuyAmount;
-
-    if (kol.avgTradeSize) {
-      // Scale buy amount to match KOL's style (but cap at reasonable limits)
-      buyAmount = Math.min(
-        Math.max(kol.avgTradeSize * 0.1, 0.1), // At least 0.1 SOL
-        2.0 // Max 2 SOL per trade
-      );
-    }
+    // Always use fixed buy amount of 0.01 SOL per trade
+    const buyAmount = this.defaultBuyAmount;
 
     return {
       address: kol.address,
@@ -96,8 +79,8 @@ export class CopyTradingManager {
     this.logger.info('🔄 Starting OdinBot mirror sync...');
 
     try {
-      // Get top performers to mirror
-      const topWallets = this.getWalletsToMirror(20);
+      // Get all wallets to mirror from curated list
+      const topWallets = this.getWalletsToMirror(314);
 
       if (topWallets.length === 0) {
         this.logger.warn('No qualified wallets found to mirror');

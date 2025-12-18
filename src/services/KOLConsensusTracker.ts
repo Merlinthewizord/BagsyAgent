@@ -58,10 +58,7 @@ export class KOLConsensusTracker {
 
     this.logger.info('KOL Wallet Stats:', {
       total: stats.totalWallets,
-      qualified: stats.qualifiedWallets,
-      avgWinRate: stats.avgWinRate + '%',
-      avgPnL: stats.avgPnL + ' SOL',
-      topPerformer: stats.topPerformer?.name || 'N/A'
+      qualified: stats.qualifiedWallets
     });
 
     this.logger.info(`Fetching KOL transactions for ${walletsToTrack.length} qualified wallets...`);

@@ -27,7 +27,7 @@ export function loadConfig(): Config {
     minLiquidityUsd: parseFloat(process.env.MIN_LIQUIDITY_USD || '50000'),
     slippageBps: parseInt(process.env.SLIPPAGE_BPS || '100'),
     stopLossPercentage: parseFloat(process.env.STOP_LOSS_PERCENTAGE || '20'),
-    takeProfitPercentage: parseFloat(process.env.TAKE_PROFIT_PERCENTAGE || '50'),
+    takeProfitPercentage: parseFloat(process.env.TAKE_PROFIT_PERCENTAGE || '100'),
     checkIntervalSeconds: parseInt(process.env.CHECK_INTERVAL_SECONDS || '60'),
     kolBuyMinAmountSol: parseFloat(process.env.KOL_BUY_MIN_AMOUNT_SOL || '0.1'),
     trendingTokenMinVolume24h: parseFloat(process.env.TRENDING_TOKEN_MIN_VOLUME_24H || '100000'),

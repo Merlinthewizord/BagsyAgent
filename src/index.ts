@@ -68,7 +68,7 @@ async function main() {
     apiReporter,
     logger,
     parseFloat(process.env.ODINBOT_SYNC_INTERVAL_HOURS || '24'),
-    parseFloat(process.env.ODINBOT_DEFAULT_BUY_AMOUNT || '0.5'),
+    parseFloat(process.env.ODINBOT_DEFAULT_BUY_AMOUNT || '0.01'),
     parseFloat(process.env.ODINBOT_DEFAULT_SELL_PERCENTAGE || '100')
   );
 
