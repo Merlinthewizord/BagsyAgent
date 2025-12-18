@@ -7,15 +7,16 @@ import { Activity, ArrowUpCircle, ArrowDownCircle, ExternalLink, TrendingUp } fr
 interface Trade {
   id: string;
   timestamp: number;
-  type: 'buy' | 'sell';
+  type: 'buy' | 'sell' | 'transfer';
   tokenAddress: string;
   tokenSymbol: string;
   amountSol: number;
   tokenAmount?: number;
   price?: number;
   txSignature?: string;
-  reason: string;
+  reason?: string | null;
   pnl?: number;
+  fee?: number;
 }
 
 interface TradesPanelProps {
