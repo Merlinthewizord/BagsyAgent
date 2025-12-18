@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { BagsyDatabase } from './database';
 import { BagsyPersonality } from './bagsy-personality';
 import { BagsyTokenService } from './bagsyTokenService';
+import { WalletTokenService } from './walletTokenService';
 import { BagsyThought, ChatMessage, TradeActivity, PortfolioStats, BagsyGoal } from './types';
 import { randomUUID as uuidv4 } from 'crypto';
 
@@ -28,6 +29,10 @@ app.use(express.json());
 const db = new BagsyDatabase();
 const bagsy = new BagsyPersonality(process.env.ANTHROPIC_API_KEY || '');
 const bagsyTokenService = new BagsyTokenService();
+const walletTokenService = new WalletTokenService(
+  process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
+  process.env.WALLET_PUBLIC_KEY
+);
 
 // In-memory state (synced with trading bot)
 let currentPortfolio: PortfolioStats = {
@@ -372,6 +377,20 @@ setInterval(async () => {
   }
 }, 60000); // Every 1 minute
 
+// Update wallet tokens periodically
+setInterval(async () => {
+  try {
+    const tokens = await walletTokenService.getAllWalletTokens();
+    if (tokens.length > 0) {
+      currentWalletTokens = tokens;
+      io.emit('wallet-tokens', currentWalletTokens);
+      console.log(`Updated wallet tokens: ${tokens.length} tokens`);
+    }
+  } catch (error) {
+    console.error('Error updating wallet tokens:', error);
+  }
+}, 30000); // Every 30 seconds
+
 // Start server
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, async () => {
@@ -399,6 +418,21 @@ httpServer.listen(PORT, async () => {
     }
   } catch (error) {
     console.error('❌ Error fetching initial BAGSY market cap:', error);
+  }
+
+  // Initial fetch of wallet tokens
+  try {
+    console.log('Fetching initial wallet tokens...');
+    const tokens = await walletTokenService.getAllWalletTokens();
+    if (tokens.length > 0) {
+      currentWalletTokens = tokens;
+      io.emit('wallet-tokens', currentWalletTokens);
+      console.log(`✅ Found ${tokens.length} tokens in wallet`);
+    } else {
+      console.log('⚠️  No tokens found or wallet not configured');
+    }
+  } catch (error) {
+    console.error('❌ Error fetching initial wallet tokens:', error);
   }
 });
 
