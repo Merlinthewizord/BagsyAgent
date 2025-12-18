@@ -10,6 +10,8 @@
 
 This tells Vercel where to find your Next.js app.
 
+**Note:** The `vercel.json` in the root is configured to work once Root Directory is set to `frontend` in Vercel dashboard.
+
 ## Project Structure
 
 - `frontend/` - Next.js frontend application
