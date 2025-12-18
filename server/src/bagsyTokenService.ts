@@ -35,37 +35,38 @@ export class BagsyTokenService {
       }
 
       return marketCap;
-    } catch (error) {
-      console.error('Error fetching BAGSY market cap:', error);
+    } catch (error: any) {
+      // Return cached data if available, otherwise 0
       return this.cachedData?.marketCap || 0;
     }
   }
 
   private async fetchFromMultipleSources(): Promise<number> {
-    // Try Jupiter first
-    try {
-      const jupiterData = await this.fetchFromJupiter();
-      if (jupiterData > 0) return jupiterData;
-    } catch (error) {
-      console.debug('Jupiter fetch failed:', error);
-    }
-
-    // Try DexScreener
+    // Try DexScreener first (most reliable)
     try {
       const dexScreenerData = await this.fetchFromDexScreener();
       if (dexScreenerData > 0) return dexScreenerData;
-    } catch (error) {
-      console.debug('DexScreener fetch failed:', error);
+    } catch (error: any) {
+      // Silently fail - will try other sources
     }
 
     // Try Birdeye
     try {
       const birdeyeData = await this.fetchFromBirdeye();
       if (birdeyeData > 0) return birdeyeData;
-    } catch (error) {
-      console.debug('Birdeye fetch failed:', error);
+    } catch (error: any) {
+      // Silently fail - will try other sources
     }
 
+    // Try Jupiter last
+    try {
+      const jupiterData = await this.fetchFromJupiter();
+      if (jupiterData > 0) return jupiterData;
+    } catch (error: any) {
+      // Silently fail
+    }
+
+    console.log('⚠️  Could not fetch $BAGSY market cap from any source');
     return 0;
   }
 
