@@ -7,6 +7,7 @@ import { BagsyDatabase } from './database';
 import { BagsyPersonality } from './bagsy-personality';
 import { BagsyTokenService } from './bagsyTokenService';
 import { WalletTokenService } from './walletTokenService';
+import { TransactionMonitor } from './transactionMonitor';
 import { BagsyThought, ChatMessage, TradeActivity, PortfolioStats, BagsyGoal } from './types';
 import { randomUUID as uuidv4 } from 'crypto';
 
@@ -30,6 +31,10 @@ const db = new BagsyDatabase();
 const bagsy = new BagsyPersonality(process.env.ANTHROPIC_API_KEY || '');
 const bagsyTokenService = new BagsyTokenService();
 const walletTokenService = new WalletTokenService(
+  process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
+  process.env.WALLET_PUBLIC_KEY
+);
+const transactionMonitor = new TransactionMonitor(
   process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
   process.env.WALLET_PUBLIC_KEY
 );
@@ -391,6 +396,39 @@ setInterval(async () => {
   }
 }, 30000); // Every 30 seconds
 
+// Check for new wallet transactions periodically
+setInterval(async () => {
+  try {
+    const newTransactions = await transactionMonitor.getNewTransactions();
+
+    if (newTransactions.length > 0) {
+      console.log(`Found ${newTransactions.length} new wallet transactions`);
+
+      // Convert wallet transactions to TradeActivity format and save to DB
+      for (const tx of newTransactions) {
+        const trade: TradeActivity = {
+          id: tx.signature,
+          timestamp: tx.timestamp,
+          type: tx.type,
+          tokenAddress: tx.tokenAddress,
+          tokenSymbol: tx.tokenSymbol,
+          price: tx.price || 0,
+          amountSol: tx.amountSol || 0,
+          tokenAmount: tx.tokenAmount,
+          pnl: undefined, // Wallet transactions don't have PnL tracking
+          fee: tx.fee
+        };
+
+        // Save to database and broadcast
+        db.addTradeActivity(trade);
+        io.emit('trade', trade);
+      }
+    }
+  } catch (error) {
+    console.error('Error checking for new transactions:', error);
+  }
+}, 300000); // Every 5 minutes
+
 // Start server
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, async () => {
@@ -433,6 +471,42 @@ httpServer.listen(PORT, async () => {
     }
   } catch (error) {
     console.error('❌ Error fetching initial wallet tokens:', error);
+  }
+
+  // Initial fetch of recent wallet transactions
+  try {
+    console.log('Fetching recent wallet transactions...');
+    const transactions = await transactionMonitor.getRecentTransactions(20);
+
+    if (transactions.length > 0) {
+      console.log(`✅ Found ${transactions.length} recent transactions`);
+
+      // Save to database (only if not already saved)
+      for (const tx of transactions) {
+        const trade: TradeActivity = {
+          id: tx.signature,
+          timestamp: tx.timestamp,
+          type: tx.type,
+          tokenAddress: tx.tokenAddress,
+          tokenSymbol: tx.tokenSymbol,
+          price: tx.price || 0,
+          amountSol: tx.amountSol || 0,
+          tokenAmount: tx.tokenAmount,
+          pnl: undefined,
+          fee: tx.fee
+        };
+
+        try {
+          db.addTradeActivity(trade);
+        } catch (error) {
+          // Already exists in DB, skip
+        }
+      }
+    } else {
+      console.log('⚠️  No recent transactions found');
+    }
+  } catch (error) {
+    console.error('❌ Error fetching initial transactions:', error);
   }
 });
 
