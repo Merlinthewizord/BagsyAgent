@@ -90,7 +90,10 @@ export class BagsyTokenService {
     console.log('📡 Attempting to fetch from DexScreener...');
     const response = await axios.get(
       `https://api.dexscreener.com/latest/dex/tokens/${BAGSY_TOKEN_ADDRESS}`,
-      { timeout: 5000 }
+      {
+        timeout: 5000,
+        validateStatus: (status) => status === 200 // Only accept 200 status
+      }
     );
 
     if (response.data?.pairs && response.data.pairs.length > 0) {
