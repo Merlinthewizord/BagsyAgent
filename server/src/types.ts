@@ -18,15 +18,16 @@ export interface ChatMessage {
 export interface TradeActivity {
   id: string;
   timestamp: number;
-  type: 'buy' | 'sell';
+  type: 'buy' | 'sell' | 'transfer';
   tokenAddress: string;
   tokenSymbol: string;
   amountSol: number;
   tokenAmount?: number;
   price?: number;
   txSignature?: string;
-  reason: string;
+  reason?: string;
   pnl?: number;
+  fee?: number;
 }
 
 export interface PortfolioStats {
